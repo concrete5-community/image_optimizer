@@ -141,7 +141,7 @@ class Process implements ApplicationAwareInterface
             $this->optimizerChain->optimize($path);
 
             // the md5 hash of the cache files also uses the modification date...
-            touch($makeTime, $makeTime);
+            touch($path, $makeTime);
 
             // Results of file size can be cached
             clearstatcache();

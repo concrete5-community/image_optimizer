@@ -1,3 +1,6 @@
+2.4.1
+- Fix 'touch' bug that was creating temp files.
+
 2.4.0
 - Save original file size in database, because it'd be missing for thumbnails otherwise.
 - Improve truncating / resetting all files.
