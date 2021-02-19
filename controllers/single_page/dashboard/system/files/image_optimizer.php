@@ -42,9 +42,9 @@ final class ImageOptimizer extends DashboardPageController
         $config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
         $config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
 
-        $this->set('success', t('Your settings have been saved.'));
+        $this->flash('success', t('Your settings have been saved.'));
 
-        return $this->view();
+        return $this->redirect('/dashboard/system/files/image_optimizer');
     }
 
     public function clear_processed_files()
@@ -58,9 +58,9 @@ final class ImageOptimizer extends DashboardPageController
         $db->executeQuery("TRUNCATE ImageOptimizerProcessedFiles");
         $db->executeQuery("TRUNCATE ImageOptimizerProcessedCacheFiles");
 
-        $this->set('success', t('The log of processed files has been cleared.'));
+        $this->flash('success', t('The log of processed files has been cleared.'));
 
-        return $this->view();
+        return $this->redirect('/dashboard/system/files/image_optimizer');
     }
 
     /**

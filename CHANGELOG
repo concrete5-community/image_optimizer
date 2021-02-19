@@ -1,3 +1,10 @@
+1.1
+- Added 'post install' screen with links to settings and Automated Jobs.
+- Fix empty checkboxes issue after 'Clear log processed files'.
+
+1.0
+- Approved by PRB
+
 0.9.6
 - Removed check for number of storage locations upon installations.
 - Removed all dependencies except for Symfony Process.
