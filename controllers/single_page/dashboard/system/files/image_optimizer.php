@@ -1,4 +1,5 @@
-<?php  
+<?php
+
 namespace Concrete\Package\ImageOptimizer\Controller\SinglePage\Dashboard\System\Files;
 
 use Concrete\Core\Config\Repository\Repository;
@@ -14,17 +15,14 @@ final class ImageOptimizer extends DashboardPageController
         $this->config = $this->app->make(Repository::class);
 
         $this->set('cacheDirectory', $this->config->get('concrete.cache.directory'));
-
         $this->set('numberOfProcessedFiles', $this->getNumberOfProcessedFiles());
         $this->set('enableLog', (bool) $this->config->get('image_optimizer.enable_log'));
         $this->set('includeFilemanagerImages', (bool) $this->config->get('image_optimizer.include_filemanager_images'));
         $this->set('includeCachedImages', (bool) $this->config->get('image_optimizer.include_cached_images'));
+        $this->set('batchSize', max((int) $this->config->get('image_optimizer.batch_size'), 1));
 
-        // Batch size should be an integer and at least 1.
-        $batchSize = (int) $this->config->get('image_optimizer.batch_size');
-        $batchSize = max($batchSize, 1);
-
-        $this->set('batchSize', $batchSize);
+        $this->set('tinyPngEnabled', (bool) $this->config->get('image_optimizer.tiny_png.enabled'));
+        $this->set('tinyPngApiKey', $this->config->get('image_optimizer.tiny_png.api_key'));
     }
 
     public function save()
@@ -41,6 +39,9 @@ final class ImageOptimizer extends DashboardPageController
         $config->save('image_optimizer.include_filemanager_images', (bool) $this->post('includeFilemanagerImages'));
         $config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
         $config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
+
+        $config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
+        $config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));
 
         $this->flash('success', t('Your settings have been saved.'));
 

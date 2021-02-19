@@ -116,17 +116,25 @@ class OptimizerChain
 
         $this->logger->info("Executing `{$command}`");
 
-        $process = new Process($command);
+        $this->logResult($this->execute($optimizer));
+    }
 
+    protected function execute(Optimizer $optimizer)
+    {
+        if ($optimizer instanceof RemoteOptimizer) {
+            return $optimizer->execute();
+        }
+
+        $process = new Process($optimizer->getCommand());
         $process
             ->setTimeout($this->timeout)
             ->run();
 
-        $this->logResult($process);
+        return $process;
     }
 
     /**
-     * @param Process $process
+     * @param Process|RemoteResult $process
      */
     protected function logResult($process)
     {
