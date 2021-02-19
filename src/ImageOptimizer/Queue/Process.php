@@ -122,6 +122,7 @@ class Process implements ApplicationAwareInterface
 
         // Only optimize if the file is still on the file system
         if (file_exists($path)) {
+            $makeTime = filemtime($path);
             $fileSizeBeforeOptimization = filesize($path);
 
             if ($this->getMaxSize() && $fileSizeBeforeOptimization >= $this->getMaxSize()) {
@@ -130,6 +131,9 @@ class Process implements ApplicationAwareInterface
             }
 
             $this->optimizerChain->optimize($path);
+
+            // the md5 hash of the cache files also uses the modification date...
+            touch($makeTime, $makeTime);
 
             // Results of file size can be cached
             clearstatcache();

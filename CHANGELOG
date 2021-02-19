@@ -1,3 +1,7 @@
+2.2.1
+- Fix bug with cache images. The getThumbnail method also uses the modification date of a file.
+We'll now reset the modification time after optimization, to prevent the creation of a new cache file.
+
 2.2.0
 - Move pages to Dashboard > Files > Image Optimizer.
 - Make sure old page is deleted (if it exists).
