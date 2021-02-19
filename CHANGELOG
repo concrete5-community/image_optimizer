@@ -1,3 +1,6 @@
+2.0.6
+- Fix conditions for 'proc*' functions.
+
 2.0.5
 - Do not run local optimizers if 'proc_open' or 'proc_close' are not available.
 

@@ -38,7 +38,7 @@ class JobServiceProvider implements ApplicationAwareInterface
             }
 
             // The `proc_open` and `proc_close` functions are needed to run the optimizers locally
-            if (!function_exists('proc_open') || !function_exists('proc_close')) {
+            if (function_exists('proc_open') && function_exists('proc_close')) {
                 $chain->addOptimizer(new Jpegoptim([
                     '--strip-all',
                     '--all-progressive',
