@@ -37,6 +37,12 @@ defined('C5_EXECUTE') or die('Access Denied.');
                     </i>
                 </th>
                 <th>
+                    <?php echo t('OK'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle"
+                       title="<?php echo t('Any peculiarities?') ?>">
+                    </i>
+                </th>
+                <th>
                     <?php echo t('Reset'); ?>
                     <i class="text-muted launch-tooltip fa fa-question-circle"
                        title="<?php echo t("Image Optimizer marks files it has processed in a log. By clicking the reset button, the log will be cleared for a file. By doing so, Image Optimizer will try to optimize the file again next time. Because files are overwritten, it may be that the image can't be optimized further.") ?>">
@@ -57,7 +63,7 @@ $(document).ready(function() {
         columns: [
             {
                 data: function(row, type, val) {
-                    return '<a target="_blank" href="'+CCM_APPLICATION_URL+row.path+'">'+row.path+'</a>';
+                    return '<a target="_blank" href="'+row.path+'">'+row.path+'</a>';
                 }
             },
             {
@@ -77,6 +83,21 @@ $(document).ready(function() {
             },
             {
                 data: function(row, type, val) {
+                    if (row.skip_reason) {
+                        return '<i class="fa fa-info-circle launch-tooltip text-muted" ' +
+                        'title="<?php echo t("A bug in concrete5 causes issues with PNG-8 images. TinyPNG might return 8-bit PNG images, therefore this file was skipped."); ?>"></i>';
+                    }
+
+                    if (row.size_reduction === 0) {
+                        return '<i class="fa fa-info-circle launch-tooltip text-muted" ' +
+                        'title="<?php echo t("0KB was optimized. This can happen if you ran the optimizers multiple times, or if no optimizers have been configured."); ?>"></i>';
+                    }
+
+                    return '<i class="fa fa-check text-muted"></i>';
+                }
+            },
+            {
+                data: function(row, type, val) {
                     return '<a data-id="'+row.id+'" data-is-original="'+ (row.is_original ? 1 : 0)+'" href="#" class="reset-one">' +
                         '<i class="fa fa-close"></i>' +
                     '</a>';
@@ -86,6 +107,11 @@ $(document).ready(function() {
         order: [[ 2, "desc" ]],
         language: {
             emptyTable: '<?php echo t('No images have been optimized yet. Please go to Automated Jobs to run the Image Optimizer.') ?>'
+        },
+        drawCallback: function(settings) {
+            $(".launch-tooltip").tooltip({
+                placement: 'left'
+            });
         }
     });
 

@@ -2,7 +2,6 @@
 
 namespace A3020\ImageOptimizer\Queue;
 
-use A3020\ImageOptimizer\Repository\ProcessedCacheFilesRepository;
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
@@ -47,10 +46,6 @@ class Finish implements ApplicationAwareInterface
     private function getTotalSavedDiskSpace()
     {
         $total = 0;
-
-        /** @var ProcessedCacheFilesRepository $repo */
-        $repo = $this->app->make(ProcessedCacheFilesRepository::class);
-        $total += $repo->totalFileSize();
 
         /** @var \A3020\ImageOptimizer\Repository\ProcessedFilesRepository $repo */
         $repo = $this->app->make(ProcessedFilesRepository::class);

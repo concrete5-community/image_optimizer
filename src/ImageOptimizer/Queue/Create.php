@@ -64,7 +64,7 @@ class Create implements ApplicationAwareInterface
             foreach ($finder->cacheImages() as $file) {
                 /** @var SplFileInfo $file */
                 $q->send(json_encode([
-                    'path' => 'cache/'.(string) $file->getRelativePathname(),
+                    'path' => '/cache/'.(string) $file->getRelativePathname(),
                 ]));
             }
         }

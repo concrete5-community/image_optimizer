@@ -70,22 +70,6 @@ final class Settings extends DashboardPageController
         return $this->redirect('/dashboard/files/image_optimizer/settings');
     }
 
-    public function clear_processed_files()
-    {
-        if (!$this->token->validate('a3020.image_optimizer.clear_processed_files')) {
-            $this->error->add($this->token->getErrorMessage());
-            return $this->view();
-        }
-
-        $db = $this->app->make('database')->connection();
-        $db->executeQuery("TRUNCATE ImageOptimizerProcessedFiles");
-        $db->executeQuery("TRUNCATE ImageOptimizerProcessedCacheFiles");
-
-        $this->flash('success', t('The log of processed files has been cleared.'));
-
-        return $this->redirect('/dashboard/system/files/image_optimizer');
-    }
-
     /**
      * @return int
      */
@@ -93,9 +77,7 @@ final class Settings extends DashboardPageController
     {
         $db = $this->app->make('database')->connection();
         return (int) $db->fetchColumn('
-            SELECT
-              (SELECT COUNT(1) FROM ImageOptimizerProcessedFiles) +
-              (SELECT COUNT(1) FROM ImageOptimizerProcessedCacheFiles) 
+            SELECT COUNT(1) FROM ImageOptimizerProcessedFiles 
         ');
     }
 

@@ -2,7 +2,6 @@
 
 namespace A3020\ImageOptimizer\Repository;
 
-use A3020\ImageOptimizer\Entity\ProcessedCacheFile;
 use A3020\ImageOptimizer\Entity\ProcessedFile;
 use Doctrine\ORM\EntityManager;
 
@@ -34,7 +33,7 @@ final class ProcessedFilesRepository
      *
      * @return ProcessedFile
      */
-    public function findOrCreate($fileId, $versionId)
+    public function findOrCreateOriginal($fileId, $versionId)
     {
         /** @var ProcessedFile $record */
         $record = $this->repository->findOneBy([
@@ -43,7 +42,7 @@ final class ProcessedFilesRepository
         ]);
 
         if (!$record) {
-            $record = $this->create($fileId, $versionId);
+            $record = $this->createOriginal($fileId, $versionId);
         }
 
         return $record;
@@ -55,7 +54,27 @@ final class ProcessedFilesRepository
      *
      * @return ProcessedFile
      */
-    public function create($fileId, $versionId)
+    public function findOrCreateDerived($path)
+    {
+        /** @var ProcessedFile $record */
+        $record = $this->repository->findOneBy([
+            'path' => $path,
+        ]);
+
+        if (!$record) {
+            $record = $this->createDerived($path);
+        }
+
+        return $record;
+    }
+
+    /**
+     * @param int $fileId
+     * @param int $versionId
+     *
+     * @return ProcessedFile
+     */
+    public function createOriginal($fileId, $versionId)
     {
         $record = new ProcessedFile();
         $record->setOriginalFileId($fileId);
@@ -66,6 +85,23 @@ final class ProcessedFilesRepository
 
         return $record;
     }
+
+    /**
+     * @param string $path
+     *
+     * @return ProcessedFile
+     */
+    public function createDerived($path)
+    {
+        $record = new ProcessedFile();
+        $record->setPath($path);
+
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
+
+        return $record;
+    }
+
 
     public function totalFileSize()
     {
@@ -78,7 +114,7 @@ final class ProcessedFilesRepository
 
     public function removeOne($id)
     {
-        /** @var ProcessedCacheFile $record */
+        /** @var ProcessedFile $record */
         $record = $this->repository->find($id);
         if ($record) {
             $this->entityManager->remove($record);

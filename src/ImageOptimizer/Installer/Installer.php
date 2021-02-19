@@ -2,7 +2,10 @@
 
 namespace A3020\ImageOptimizer\Installer;
 
+use Concrete\Core\Application\ApplicationAwareInterface;
+use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
+use Concrete\Core\Database\DatabaseStructureManager;
 use Concrete\Core\Entity\Attribute\Key\Settings\BooleanSettings;
 use Concrete\Core\Page\Page;
 use Concrete\Core\Page\Single;
@@ -10,26 +13,37 @@ use Concrete\Core\Attribute\Key\Category;
 use Concrete\Core\Attribute\Key\FileKey;
 use Concrete\Core\Attribute\Type;
 use Concrete\Core\Job\Job;
+use Doctrine\ORM\EntityManager;
 
-class Installer
+class Installer implements ApplicationAwareInterface
 {
+    use ApplicationAwareTrait;
+
+    /**
+     * @var EntityManager
+     */
+    protected $entityManager;
+
     /**
      * @var Repository
      */
     private $config;
 
-    public function __construct(Repository $config)
+    public function __construct(Repository $config, EntityManager $entityManager)
     {
         $this->config = $config;
+        $this->entityManager = $entityManager;
     }
 
     public function install($pkg)
     {
         $this->configure();
         $this->uninstallOldPage();
+        $this->dropOldTable();
         $this->installPages($pkg);
         $this->installFileAttribute($pkg);
         $this->installJob($pkg);
+        $this->refreshEntities();
     }
 
     private function installPages($pkg)
@@ -109,5 +123,17 @@ class Installer
         $this->config->save('image_optimizer.include_thumbnail_images', true);
         $this->config->save('image_optimizer.include_cached_images', true);
         $this->config->save('image_optimizer.batch_size', 5);
+    }
+
+    private function refreshEntities()
+    {
+        $manager = new DatabaseStructureManager($this->entityManager);
+        $manager->refreshEntities();
+    }
+
+    private function dropOldTable()
+    {
+        $db = $this->app->make('database')->connection();
+        $db->executeQuery("DROP TABLE IF EXISTS ImageOptimizerProcessedCacheFiles");
     }
 }

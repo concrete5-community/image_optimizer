@@ -1,3 +1,13 @@
+2.3.0
+- Get rid of ImageOptimizerProcessedCachedFiles table.
+- Combine entities and repositories for simplicity.
+- Make sure path for static files is consistently stored.
+- Skip PNG files if TinyPNG service is used, because concrete5 / Imagine
+has a bug with transparent PNG-8 images.
+- Add info column to optimized images table and display why files are skipped.
+
+Note: This will flush statistics for all thumbnail and cache images.
+
 2.2.1
 - Fix bug with cache images. The getThumbnail method also uses the modification date of a file.
 We'll now reset the modification time after optimization, to prevent the creation of a new cache file.

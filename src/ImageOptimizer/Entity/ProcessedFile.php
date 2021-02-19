@@ -13,20 +13,32 @@ use Doctrine\ORM\Mapping as ORM;
 class ProcessedFile
 {
     /**
+     * @see https://github.com/concrete5/concrete5/issues/3999
+     * TinyPNG might return an 8 bit PNG, however, concrete5 / Imagine
+     * can't handle PNG-8 properly as it can loose transparency.
+     */
+    const SKIP_REASON_PNG_8_BUG = 1;
+
+    /**
      * @ORM\Id @ORM\Column(type="integer", options={"unsigned":true})
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
 
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @ORM\Column(type="integer", nullable=true)
      */
     protected $originalFileId;
 
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @ORM\Column(type="integer", nullable=true)
      */
     protected $fileVersionId;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $path;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -37,6 +49,11 @@ class ProcessedFile
      * @ORM\Column(type="integer", nullable=false)
      */
     protected $fileSizeReduction = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $skipReason;
 
     /**
      * @return int
@@ -116,5 +133,37 @@ class ProcessedFile
     public function setFileSizeReduction($fileSizeReduction)
     {
         $this->fileSizeReduction = max((int) $fileSizeReduction, 0);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    /**
+     * @param string $path
+     */
+    public function setPath($path)
+    {
+        $this->path = (string) $path;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getSkipReason()
+    {
+        return $this->skipReason;
+    }
+
+    /**
+     * @param int|null $skipReason
+     */
+    public function setSkipReason($skipReason)
+    {
+        $this->skipReason = $skipReason;
     }
 }
