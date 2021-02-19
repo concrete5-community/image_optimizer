@@ -3,14 +3,13 @@
 namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
-use A3020\ImageOptimizer\Exception\MonthlyLimitReached;
 use A3020\ImageOptimizer\Handler\HandlerInterface;
 use A3020\ImageOptimizer\MonthlyLimit;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
-use Concrete\Core\Logging\Logger;
 use Exception;
+use Psr\Log\LoggerInterface;
 use ZendQueue\Message as ZendQueueMessage;
 
 class Process implements ApplicationAwareInterface
@@ -18,12 +17,12 @@ class Process implements ApplicationAwareInterface
     use ApplicationAwareTrait;
 
     /**
-     * @var MonthlyLimit
+     * @var \A3020\ImageOptimizer\MonthlyLimit
      */
     private $monthlyLimit;
 
     /**
-     * @var Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -32,7 +31,7 @@ class Process implements ApplicationAwareInterface
      */
     private $config;
 
-    public function __construct(MonthlyLimit $monthlyLimit, Logger $logger, Repository $config)
+    public function __construct(MonthlyLimit $monthlyLimit, LoggerInterface $logger, Repository $config)
     {
         $this->monthlyLimit = $monthlyLimit;
         $this->logger = $logger;
@@ -65,7 +64,7 @@ class Process implements ApplicationAwareInterface
 
             return $file;
         } catch (Exception $e) {
-            $this->logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
+            $this->logger->debug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
 
             return null;
         }

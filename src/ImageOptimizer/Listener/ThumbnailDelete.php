@@ -3,8 +3,8 @@
 namespace A3020\ImageOptimizer\Listener;
 
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
-use Concrete\Core\Logging\Logger;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class ThumbnailDelete
 {
@@ -14,11 +14,11 @@ class ThumbnailDelete
     private $repository;
 
     /**
-     * @var Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
-    public function __construct(ProcessedFilesRepository $repository, Logger $logger)
+    public function __construct(ProcessedFilesRepository $repository, LoggerInterface $logger)
     {
         $this->repository = $repository;
         $this->logger = $logger;
@@ -36,7 +36,7 @@ class ThumbnailDelete
         try {
             $this->repository->removeByPath($event->getPath());
         } catch (Exception $e) {
-            $this->logger->addDebug($e->getMessage());
+            $this->logger->debug($e->getMessage());
         }
     }
 }

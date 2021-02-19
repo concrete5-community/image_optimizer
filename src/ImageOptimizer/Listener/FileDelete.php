@@ -3,9 +3,9 @@
 namespace A3020\ImageOptimizer\Listener;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
-use Concrete\Core\Logging\Logger;
 use Doctrine\ORM\EntityManager;
 use Exception;
+use Psr\Log\LoggerInterface;
 
 class FileDelete
 {
@@ -20,11 +20,11 @@ class FileDelete
     private $repository;
 
     /**
-     * @var Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
-    public function __construct(EntityManager $entityManager, Logger $logger)
+    public function __construct(EntityManager $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(ProcessedFile::class);
@@ -51,7 +51,7 @@ class FileDelete
 
             $this->entityManager->flush();
         } catch (Exception $e) {
-            $this->logger->addDebug($e->getMessage());
+            $this->logger->debug($e->getMessage());
         }
     }
 }
