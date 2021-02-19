@@ -45,36 +45,38 @@ class JobServiceProvider implements ApplicationAwareInterface
                 $chain->useLogger($this->app->make('log'));
             }
 
-            // The `proc_open` and `proc_close` functions are needed to run the optimizers locally
-            if (function_exists('proc_open') && function_exists('proc_close')) {
-                $chain
-                    ->addOptimizer(new Jpegoptim([
-                        '--strip-all',
-                        '--all-progressive',
-                    ]))
-                    ->addOptimizer(new Pngquant([
-                        '--force',
-                    ]))
-                    ->addOptimizer(new Optipng([
-                        '-i0',
-                        '-o2',
-                        '-quiet',
-                    ]))
-                    ->addOptimizer(new Svgo([
-                        '--disable=cleanupIDs',
-                    ]))
-                    ->addOptimizer(new Gifsicle([
-                        '-b',
-                        '-O3',
-                    ]));
-            }
-
+            // First check if TinyPNG is enabled and configured. If so, let's only use that service.
             if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled')
                 && !empty($this->config->get('image_optimizer::settings.tiny_png.api_key'))
             ) {
                 $chain->addOptimizer(new TinyPng([
                     'api_key' => $this->config->get('image_optimizer::settings.tiny_png.api_key'),
                 ]));
+            } else {
+                // Only use server side optimizers if TinyPNG is disabled or not configured.
+                // The `proc_open` and `proc_close` functions are needed to run optimizers locally.
+                if (function_exists('proc_open') && function_exists('proc_close')) {
+                    $chain
+                        ->addOptimizer(new Jpegoptim([
+                            '--strip-all',
+                            '--all-progressive',
+                        ]))
+                        ->addOptimizer(new Pngquant([
+                            '--force',
+                        ]))
+                        ->addOptimizer(new Optipng([
+                            '-i0',
+                            '-o2',
+                            '-quiet',
+                        ]))
+                        ->addOptimizer(new Svgo([
+                            '--disable=cleanupIDs',
+                        ]))
+                        ->addOptimizer(new Gifsicle([
+                            '-b',
+                            '-O3',
+                        ]));
+                }
             }
 
             return $chain;

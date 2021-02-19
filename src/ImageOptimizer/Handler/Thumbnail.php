@@ -46,6 +46,8 @@ class Thumbnail extends BaseHandler
         // Get the corresponding thumbnail type object.
         $thumbnailType = Version::getByHandle($body['thumbnailTypeHandle']);
         if (!$thumbnailType) {
+            $this->logger->error('Thumbnail Type not found: ' . $body['thumbnailTypeHandle']);
+
             return null;
         }
 

@@ -12,7 +12,7 @@ final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
     protected $appVersionRequired = '8.3.1';
-    protected $pkgVersion = '3.2.9';
+    protected $pkgVersion = '3.2.10';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];

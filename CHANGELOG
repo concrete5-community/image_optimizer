@@ -1,3 +1,7 @@
+3.2.10
+- Let's not use the server side optimizers in case TinyPNG is configured and enabled.
+- Add additional logging in case a thumbnail type cannot be found.
+
 3.2.9
 - Fix 'useLogger() on null' error, caused by unprocessed
 queue messages from an earlier version of the add-on.

@@ -91,6 +91,10 @@ class OptimizerChain
 
         $this->logger->info("Start optimizing {$pathToImage}");
 
+        if (count($this->optimizers) === 0) {
+            $this->logger->warning("No optimizers have been configured!");
+        }
+
         foreach ($this->optimizers as $optimizer) {
             $this->applyOptimizer($optimizer, $image);
         }
