@@ -1,3 +1,6 @@
+2.0.5
+- Do not run local optimizers if 'proc_open' or 'proc_close' are not available.
+
 2.0.4
 - Fix 'Class log/exceptions does not exist' error on older v8 versions.
 

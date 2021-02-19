@@ -31,33 +31,33 @@ class JobServiceProvider implements ApplicationAwareInterface
         $this->loadDependencies();
 
         $this->app->bind(OptimizerChain::class, function($app) {
-            $chain = (new OptimizerChain())
-                ->addOptimizer(new Jpegoptim([
-                    '--strip-all',
-                    '--all-progressive',
-                ]))
-
-                ->addOptimizer(new Pngquant([
-                    '--force',
-                ]))
-
-                ->addOptimizer(new Optipng([
-                    '-i0',
-                    '-o2',
-                    '-quiet',
-                ]))
-
-                ->addOptimizer(new Svgo([
-                    '--disable=cleanupIDs',
-                ]))
-
-                ->addOptimizer(new Gifsicle([
-                    '-b',
-                    '-O3',
-                ]));
+            $chain = (new OptimizerChain());
 
             if ((bool) $this->config->get('image_optimizer.enable_log')) {
                 $chain->useLogger($this->app->make('log'));
+            }
+
+            // The `proc_open` and `proc_close` functions are needed to run the optimizers locally
+            if (!function_exists('proc_open') || !function_exists('proc_close')) {
+                $chain->addOptimizer(new Jpegoptim([
+                    '--strip-all',
+                    '--all-progressive',
+                ]))
+                    ->addOptimizer(new Pngquant([
+                        '--force',
+                    ]))
+                    ->addOptimizer(new Optipng([
+                        '-i0',
+                        '-o2',
+                        '-quiet',
+                    ]))
+                    ->addOptimizer(new Svgo([
+                        '--disable=cleanupIDs',
+                    ]))
+                    ->addOptimizer(new Gifsicle([
+                        '-b',
+                        '-O3',
+                    ]));
             }
 
             if ((bool) $this->config->get('image_optimizer.tiny_png.enabled') && !empty($this->config->get('image_optimizer.tiny_png.api_key'))) {
