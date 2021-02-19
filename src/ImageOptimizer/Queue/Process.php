@@ -122,9 +122,15 @@ class Process implements ApplicationAwareInterface
         // Only optimize if the file is still on the file system
         if (file_exists($path)) {
             $fileSizeBeforeOptimization = filesize($path);
+
+            if ($this->getMaxSize() && $fileSizeBeforeOptimization >= $this->getMaxSize()) {
+                // Image is too big, let's skip this one
+                return;
+            }
+
             $this->optimizerChain->optimize($path);
 
-            // Results of filesize can be cached
+            // Results of file size can be cached
             clearstatcache();
 
             $fileSizeAfterOptimization = filesize($path);
@@ -162,5 +168,13 @@ class Process implements ApplicationAwareInterface
 
         $this->entityManager->persist($record);
         $this->entityManager->flush();
+    }
+
+    /**
+     * @return int max size in bytes
+     */
+    private function getMaxSize()
+    {
+        return (int) $this->config->get('image_optimizer.max_image_size') * 1024;
     }
 }

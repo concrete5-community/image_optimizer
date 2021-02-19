@@ -22,6 +22,7 @@ final class ImageOptimizer extends DashboardPageController
         $this->set('includeCachedImages', (bool) $this->config->get('image_optimizer.include_cached_images'));
         $this->set('batchSize', max((int) $this->config->get('image_optimizer.batch_size'), 1));
         $this->set('maxOptimizationsPerMonth', $this->config->get('image_optimizer.max_optimizations_per_month'));
+        $this->set('maxImageSize', $this->config->get('image_optimizer.max_image_size'));
 
         $this->set('tinyPngEnabled', (bool) $this->config->get('image_optimizer.tiny_png.enabled'));
         $this->set('tinyPngApiKey', $this->config->get('image_optimizer.tiny_png.api_key'));
@@ -50,6 +51,13 @@ final class ImageOptimizer extends DashboardPageController
         }
 
         $config->save('image_optimizer.max_optimizations_per_month', $maxOptimizationsPerMonth);
+
+        $maxImageSize = (int) $this->post('maxImageSize');
+        if (empty($maxImageSize)) {
+            $maxImageSize = null;
+        }
+
+        $config->save('image_optimizer.max_image_size', $maxImageSize);
 
         $config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
         $config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));

@@ -2,7 +2,9 @@
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
-/** @var $form \Concrete\Core\Form\Service\Form */
+/** @var \Concrete\Core\Form\Service\Form $form */
+/** @var int $numberOfOptimizationsThisMonth */
+/** @var int $maxImageSize */
 ?>
 
 <div class="ccm-dashboard-header-buttons btn-group">
@@ -72,7 +74,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 ?>
             </div>
 
-            <div class="form-group" style="margin-bottom: 0">
+            <div class="form-group">
                 <?php
                 echo $form->label('maxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
                 /** @var int|null $maxOptimizationsPerMonth */
@@ -85,6 +87,18 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 if ($numberOfOptimizationsThisMonth) {
                     echo '<small style="color: #777; font-style: italic; margin-top: 3px;">' . t('Optimizations performed this month: %s.', $numberOfOptimizationsThisMonth) . '</small>';
                 }
+                ?>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0">
+                <?php
+                echo $form->label('maxImageSize', t("Don't optimize images bigger than ... KB"));
+                /** @var int|null $maxImageSize */
+                echo $form->number('maxImageSize', $maxImageSize, [
+                    'placeholder' => t('Leave empty to not set a maximum'),
+                    'min' => 1,
+                    'style'=> 'max-width: 350px',
+                ]);
                 ?>
             </div>
         </fieldset>
