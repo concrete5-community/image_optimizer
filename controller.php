@@ -18,7 +18,7 @@ final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
     protected $appVersionRequired = '8.0';
-    protected $pkgVersion = '1.4';
+    protected $pkgVersion = '1.4.1';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];
@@ -37,9 +37,23 @@ final class Controller extends Package
     {
         Events::addListener('on_cache_flush', function() {
             $db = $this->app->make('database')->connection();
-            $db->executeQuery("
-                DELETE FROM ImageOptimizerProcessedCacheFiles
-            ");
+
+            $config = $this->app->make(Repository::class);
+
+            // We have to clear the cache, otherwise it won't reload the most recent value from the config store
+            $config->clearCache();
+
+            if (!$config->has('concrete.cache.clear.thumbnails') || $config->get('concrete.cache.clear.thumbnails')) {
+                // Remove all records if the thumbnail setting doesn't exist or if we decide to also clear thumbs
+                $db->executeQuery("
+                    TRUNCATE TABLE ImageOptimizerProcessedCacheFiles
+                ");
+            } else {
+                // Keep the thumbnail records
+                $db->executeQuery("
+                    DELETE FROM ImageOptimizerProcessedCacheFiles WHERE cacheIdentifier NOT LIKE 'thumbnails%' 
+                ");
+            }
         });
     }
 

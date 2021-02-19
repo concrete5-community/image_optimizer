@@ -52,4 +52,13 @@ final class ProcessedCacheFilesRepository
 
         return $record;
     }
+
+    public function totalFileSize()
+    {
+        return (float) $this->em->getRepository(ProcessedCacheFile::class)
+            ->createQueryBuilder('pcf')
+            ->select('SUM(pcf.fileSizeReduction) as fileSize')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

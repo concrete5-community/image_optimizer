@@ -165,8 +165,6 @@ final class ImageOptimizer extends QueueableJob
 
         $this->entityManager->persist($record);
         $this->entityManager->flush();
-
-        $this->updateTotalSavedDiskSpace($fileSizeDiff);
     }
 
     /**
@@ -199,7 +197,6 @@ final class ImageOptimizer extends QueueableJob
 
             $fileSizeDiff = $fileSizeBeforeOptimization - $fileSizeAfterOptimization;
             $record->setFileSizeReduction($fileSizeDiff);
-            $this->updateTotalSavedDiskSpace($fileSizeDiff);
         }
 
         // We'll mark as processed even if the file can't be found.
@@ -249,22 +246,21 @@ final class ImageOptimizer extends QueueableJob
     }
 
     /**
-     * @param int $saved
-     */
-    private function updateTotalSavedDiskSpace($saved)
-    {
-        $total = $this->getTotalSavedDiskSpace();
-        $total += (int) $saved;
-
-        $this->config->save('image_optimizer.saved_disk_space', $total);
-    }
-
-    /**
      * @return int
      */
     private function getTotalSavedDiskSpace()
     {
-        return (int) $this->config->get('image_optimizer.saved_disk_space');
+        $total = 0;
+
+        /** @var ProcessedCacheFilesRepository $repo */
+        $repo = $this->appInstance->make(ProcessedCacheFilesRepository::class);
+        $total += $repo->totalFileSize();
+
+        /** @var ProcessedFilesRepository $repo */
+        $repo = $this->appInstance->make(ProcessedFilesRepository::class);
+        $total += $repo->totalFileSize();
+
+        return $total;
     }
 
     /**

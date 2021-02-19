@@ -1,3 +1,8 @@
+1.4.1
+- Use truncate to prevent high auto increment number when cache is clear often.
+- Keep thumbnail records if 'thumbnails' are not removed during cache clear.
+- Change how the total saved file size is calculated.
+
 1.4
 - Fix processing cache images that reside is a sub directory.
 

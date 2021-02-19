@@ -55,4 +55,13 @@ final class ProcessedFilesRepository
 
         return $record;
     }
+
+    public function totalFileSize()
+    {
+        return (float) $this->em->getRepository(ProcessedFile::class)
+            ->createQueryBuilder('pf')
+            ->select('SUM(pf.fileSizeReduction) as fileSize')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
