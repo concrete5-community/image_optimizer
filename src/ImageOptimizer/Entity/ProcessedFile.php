@@ -212,8 +212,7 @@ class ProcessedFile
      */
     public function getPath()
     {
-        // On Windows there may be backslashes in the path...
-        return str_replace('\\', '/', $this->path);
+        return $this->path;
     }
 
     /**

@@ -26,8 +26,11 @@ class FileSkipChecker
      */
     public function check(ProcessedFile $file)
     {
-        $extension = strtolower(pathinfo($file->getPath(), PATHINFO_EXTENSION));
-        if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled') && $extension === 'png') {
+        $extension = strtolower(pathinfo($file->getAbsolutePath(), PATHINFO_EXTENSION));
+        if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled')
+            && $extension === 'png'
+            && version_compare($this->config->get('concrete.version_installed'), '8.5.0a2', '<')
+        ) {
             $file->setSkipReason(ProcessedFile::SKIP_REASON_PNG_8_BUG);
             return;
         }

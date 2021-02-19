@@ -1,3 +1,7 @@
+3.2.6
+- Make sure PNGs are not skipped anymore if concrete5 version is >= 8.5.0a2.
+This is now fixed: https://github.com/concrete5/concrete5/issues/3999.
+
 3.2.5
 - Add a precheck to verify that either TinyPNG is configured
 or that the server optimizers are installed.
