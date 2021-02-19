@@ -2,9 +2,11 @@
 
 namespace A3020\ImageOptimizer\RequestHandler;
 
+use A3020\ImageOptimizer\ComposerLoader;
 use A3020\ImageOptimizer\Statistics\Month;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Database\Connection\Connection;
+use Exception;
 
 class ViewSettings
 {
@@ -23,11 +25,17 @@ class ViewSettings
      */
     private $monthStatistics;
 
-    public function __construct(Repository $config, Connection $connection, Month $monthStatistics)
+    /**
+     * @var ComposerLoader
+     */
+    private $composerLoader;
+
+    public function __construct(Repository $config, Connection $connection, Month $monthStatistics, ComposerLoader $composerLoader)
     {
         $this->config = $config;
         $this->connection = $connection;
         $this->monthStatistics = $monthStatistics;
+        $this->composerLoader = $composerLoader;
     }
 
     /**
@@ -43,5 +51,28 @@ class ViewSettings
     public function getNumberOfOptimizationsThisMonth()
     {
         return $this->monthStatistics->total();
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getTinyPngNumberOfCompressions()
+    {
+        if ((bool) $this->config->get('image_optimizer.tiny_png.enabled')
+            && $this->config->get('image_optimizer.tiny_png.api_key')
+        ) {
+            try {
+                // The composer dependencies need to be loaded
+                // in order to call the TinyPNG API.
+                $this->composerLoader->load();
+
+                \Tinify\setKey($this->config->get('image_optimizer.tiny_png.api_key'));
+                \Tinify\validate();
+
+                return \Tinify\compressionCount();
+            } catch (Exception $e) {}
+        }
+
+        return null;
     }
 }

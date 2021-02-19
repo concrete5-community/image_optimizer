@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer\Provider;
 
+use A3020\ImageOptimizer\ComposerLoader;
 use A3020\ImageOptimizer\OptimizerChain;
 use A3020\ImageOptimizer\Optimizers\Gifsicle;
 use A3020\ImageOptimizer\Optimizers\Jpegoptim;
@@ -18,17 +19,25 @@ class JobServiceProvider implements ApplicationAwareInterface
 {
     use ApplicationAwareTrait;
 
-    /** @var Repository */
+    /**
+     * @var Repository
+     */
     private $config;
 
-    public function __construct(Repository $config)
+    /**
+     * @var ComposerLoader
+     */
+    private $composerLoader;
+
+    public function __construct(Repository $config, ComposerLoader $composerLoader)
     {
         $this->config = $config;
+        $this->composerLoader = $composerLoader;
     }
 
     public function register()
     {
-        $this->loadDependencies();
+        $this->composerLoader->load();
 
         $this->app->bind(OptimizerChain::class, function($app) {
             $chain = (new OptimizerChain());
@@ -68,13 +77,5 @@ class JobServiceProvider implements ApplicationAwareInterface
 
             return $chain;
         });
-    }
-
-    private function loadDependencies()
-    {
-        $packageService = $this->app->make(PackageService::class);
-        $pkg = $packageService->getByHandle('image_optimizer');
-
-        require_once $pkg->getPackagePath().'/vendor/autoload.php';
     }
 }

@@ -26,6 +26,7 @@ final class Settings extends DashboardPageController
         $this->set('tinyPngApiKey', $handler->config->get('image_optimizer.tiny_png.api_key'));
         $this->set('numberOfProcessedFiles', $handler->getNumberOfProcessedFiles());
         $this->set('numberOfOptimizationsThisMonth', $handler->getNumberOfOptimizationsThisMonth());
+        $this->set('tinyPngNumberOfCompressions', $handler->getTinyPngNumberOfCompressions());
     }
 
     public function save()

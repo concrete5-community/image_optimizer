@@ -11,7 +11,7 @@ final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
     protected $appVersionRequired = '8.3.1';
-    protected $pkgVersion = '3.0.4';
+    protected $pkgVersion = '3.1.0';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];
@@ -28,6 +28,7 @@ final class Controller extends Package
 
     public function on_start()
     {
+        /** @var ServiceProvider $provider */
         $provider = $this->app->make(ServiceProvider::class);
         $provider->register();
     }

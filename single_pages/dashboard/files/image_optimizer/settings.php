@@ -7,6 +7,7 @@ use Concrete\Core\Support\Facade\Url;
 /** @var \Concrete\Core\Form\Service\Form $form */
 /** @var int $numberOfOptimizationsThisMonth */
 /** @var int $maxImageSize */
+/** @var int|null $tinyPngNumberOfCompressions */
 ?>
 
 <div class="ccm-dashboard-header-buttons btn-group">
@@ -174,6 +175,16 @@ use Concrete\Core\Support\Facade\Url;
                     echo t('Enable TinyPNG');
                     ?>
                 </label>
+
+                <?php
+                if ($tinyPngNumberOfCompressions !== null) {
+                    echo '<small class="help-block">';
+
+                    echo t('Number of compressions this month: %s.', $tinyPngNumberOfCompressions);
+
+                    echo '</small>';
+                }
+                ?>
             </div>
 
             <div class="form-group" style="margin-bottom: 0">

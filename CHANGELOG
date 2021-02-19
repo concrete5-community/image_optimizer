@@ -1,3 +1,6 @@
+3.1.0
+- Show number of TinyPNG compressions in the current month if the service is enabled and an API key is provided.
+
 3.0.4
 - Fix query error when clearing the cache and 'Clear cached thumbnails' is checked on.
 

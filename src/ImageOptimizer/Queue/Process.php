@@ -3,12 +3,11 @@
 namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
-use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\OptimizerChain;
+use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
-use Concrete\Core\Attribute\Key\FileKey;
 use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
