@@ -1,3 +1,6 @@
+1.2
+- Clear Flysystem cache during processing.
+
 1.1
 - Added 'post install' screen with links to settings and Automated Jobs.
 - Fix empty checkboxes issue after 'Clear log processed files'.

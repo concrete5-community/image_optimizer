@@ -8,6 +8,7 @@ use A3020\ImageOptimizer\Finder\Finder;
 use A3020\ImageOptimizer\OptimizerChain;
 use A3020\ImageOptimizer\OptimizerChainFactory;
 use Concrete\Core\Attribute\Key\FileKey;
+use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
 use Concrete\Core\File\FileList;
@@ -16,6 +17,7 @@ use Concrete\Core\Package\PackageService;
 use Concrete\Core\Support\Facade\Application;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
+use League\Flysystem\Cached\Storage\Psr6Cache;
 use Symfony\Component\Process\Process;
 use ZendQueue\Message as ZendQueueMessage;
 use ZendQueue\Queue as ZendQueue;
@@ -157,8 +159,11 @@ final class ImageOptimizer extends QueueableJob
         if (file_exists($pathToImage)) {
             $this->optimizerChain->optimize($pathToImage);
 
-            // Results of filesize can be cached
-            clearstatcache();
+            // Clear flysystem cache
+            $fslId = $file->getFileStorageLocationObject()->getID();
+            $pool = $this->appInstance->make(ExpensiveCache::class)->pool;
+            $cache = new Psr6Cache($pool, 'flysystem-id-' . $fslId);
+            $cache->flush();
 
             $fileVersion->refreshAttributes(true);
         }
