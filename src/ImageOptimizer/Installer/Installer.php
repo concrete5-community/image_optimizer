@@ -26,23 +26,42 @@ class Installer
     public function install($pkg)
     {
         $this->configure();
-        $this->installDashboardPage($pkg);
+        $this->uninstallOldPage();
+        $this->installPages($pkg);
         $this->installFileAttribute($pkg);
         $this->installJob($pkg);
     }
 
-    private function installDashboardPage($pkg)
+    private function installPages($pkg)
     {
-        $path = '/dashboard/system/files/image_optimizer';
+        $pages = [
+            '/dashboard/files/image_optimizer' => t('Image Optimizer'),
+            '/dashboard/files/image_optimizer/search' => t('Optimized Images'),
+            '/dashboard/files/image_optimizer/settings' => t('Settings'),
+        ];
 
-        /** @var Page $page */
-        $page = Page::getByPath($path);
-        if ($page && !$page->isError()) {
-            return;
+        foreach ($pages as $path => $name) {
+            /** @var Page $page */
+            $page = Page::getByPath($path);
+            if (!$page || $page->isError()) {
+                $page = Single::add($path, $pkg);
+            }
+
+            if ($page->getCollectionName() !== $name) {
+                $page->update([
+                    'cName' => $name
+                ]);
+            }
         }
+    }
 
-        $singlePage = Single::add($path, $pkg);
-        $singlePage->update('Image Optimizer');
+    private function uninstallOldPage()
+    {
+        /** @var Page $page */
+        $page = Page::getByPath('/dashboard/system/files/image_optimizer');
+        if ($page && !$page->isError()) {
+            $page->delete();
+        }
     }
 
     private function installFileAttribute($pkg)
@@ -87,6 +106,7 @@ class Installer
 
         $this->config->save('image_optimizer.enable_log', false);
         $this->config->save('image_optimizer.include_filemanager_images', true);
+        $this->config->save('image_optimizer.include_thumbnail_images', true);
         $this->config->save('image_optimizer.include_cached_images', true);
         $this->config->save('image_optimizer.batch_size', 5);
     }

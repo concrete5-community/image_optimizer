@@ -2,8 +2,8 @@
 
 namespace A3020\ImageOptimizer\Queue;
 
-use A3020\ImageOptimizer\Entity\ProcessedCacheFilesRepository;
-use A3020\ImageOptimizer\Entity\ProcessedFilesRepository;
+use A3020\ImageOptimizer\Repository\ProcessedCacheFilesRepository;
+use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\OptimizerChain;
 use Concrete\Core\Application\ApplicationAwareInterface;
@@ -72,7 +72,7 @@ class Process implements ApplicationAwareInterface
     {
         $fileVersion = $file->getVersion();
 
-        /** @var ProcessedFilesRepository $repo */
+        /** @var \A3020\ImageOptimizer\Repository\ProcessedFilesRepository $repo */
         $repo = $this->app->make(ProcessedFilesRepository::class);
         $record = $repo->findOrCreate($file->getFileID(), $fileVersion->getFileVersionID());
 

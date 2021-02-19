@@ -10,9 +10,9 @@ use Concrete\Core\Support\Facade\Url;
 
 <p>
     <strong><?php echo t('Configure %s:', t('Image Optimizer')); ?></strong>
-    <a class="btn btn-default" href="<?php echo Url::to('/dashboard/system/files/image_optimizer') ?>">
+    <a class="btn btn-default" href="<?php echo Url::to('/dashboard/files/image_optimizer/settings') ?>">
         <?php
-        echo t('System & Settings / Files / Image Optimizer');
+        echo t('Files / Image Optimizer / Settings');
         ?>
     </a>
 </p>

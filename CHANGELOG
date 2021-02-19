@@ -1,3 +1,10 @@
+2.2.0
+- Move pages to Dashboard > Files > Image Optimizer.
+- Make sure old page is deleted (if it exists).
+- Improve settings page with better tooltips / styling.
+- Fix compatibility issue with `isBuilt` column on 8.3.0 and lower.
+- Add install notes.
+
 2.1.0
 - Add setting to include thumbnail images. (default=ON)
 - Make sure images from /files/thumbnails are included.

@@ -5,6 +5,7 @@ namespace A3020\ImageOptimizer\Provider;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
+use Concrete\Core\Routing\RouterInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ServiceProvider implements ApplicationAwareInterface
@@ -40,5 +41,17 @@ class ServiceProvider implements ApplicationAwareInterface
                 ");
             }
         });
+
+        /** @var RouterInterface $router */
+        $router = $this->app->make(RouterInterface::class);
+
+        $router->registerMultiple([
+            '/ccm/system/image_optimizer/files' => [
+                '\A3020\ImageOptimizer\Ajax\Files::view',
+            ],
+            '/ccm/system/image_optimizer/reset' => [
+                '\A3020\ImageOptimizer\Ajax\Reset::view',
+            ],
+        ]);
     }
 }

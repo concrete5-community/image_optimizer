@@ -28,32 +28,32 @@ use Concrete\Core\Support\Facade\Url;
 
             <div class="form-group">
                 <label class="control-label launch-tooltip"
-                        title="<?php echo t("If you don't want to optimize the original files, you can disable this option."); ?>"
+                        title="<?php echo t("These are the files the user once uploaded to the File Manager."); ?>"
                 >
                     <?php
                     /** @var bool $includeFilemanagerImages*/
                     echo $form->checkbox('includeFilemanagerImages', 1, $includeFilemanagerImages);
                     ?>
-                    <?php echo t('Include images from File Manager'); ?>
+                    <?php echo t('Optimize original files'); ?>
                 </label>
             </div>
 
             <div class="form-group">
                 <label class="control-label launch-tooltip"
-                   title="<?php echo t("Thumbnail Types ar often used by galleries. You probably want this setting to be enabled. In case no thumbnails are optimized, make sure you re-run the '%s' Automated Job.", t("Fill thumbnail database table")); ?>"
+                   title="<?php echo t("Thumbnail Types ar often used by galleries. The images are scaled versions of the original images. You probably want this setting to be enabled. In case no thumbnails are optimized, make sure you re-run the '%s' Automated Job.", t("Fill thumbnail database table")); ?>"
                 >
                     <?php
                     /** @var bool $includeThumbnailImages */
                     echo $form->checkbox('includeThumbnailImages', 1, $includeThumbnailImages);
                     ?>
-                    <?php echo t('Include thumbnail images')?><br>
-                    <small>
-                        <?php
-                        /** @var string $thumbnailImageDirectory **/
-                        echo $thumbnailImageDirectory;
-                        ?>
-                    </small>
-                </label>
+                    <?php echo t('Optimize thumbnail images')?><br>
+                </label><br>
+                <small class="text-muted">
+                    <?php
+                    /** @var string $thumbnailImageDirectory **/
+                    echo $thumbnailImageDirectory;
+                    ?>
+                </small>
             </div>
 
             <div class="form-group">
@@ -64,18 +64,20 @@ use Concrete\Core\Support\Facade\Url;
                     /** @var bool $includeCachedImages */
                     echo $form->checkbox('includeCachedImages', 1, $includeCachedImages);
                     ?>
-                    <?php echo t('Include images from cache directory')?><br>
-                    <small>
-                        <?php
-                        /** @var string $cacheDirectory **/
-                        echo $cacheDirectory;
-                        ?>
-                    </small>
-                </label>
+                    <?php echo t('Optimize images from cache directory')?><br>
+                </label><br>
+                <small class="text-muted">
+                    <?php
+                    /** @var string $cacheDirectory **/
+                    echo $cacheDirectory;
+                    ?>
+                </small>
             </div>
 
             <div class="form-group">
-                <label>
+                <label class="control-label launch-tooltip"
+                       title="<?php echo t("Enable verbose logging. Only use this for debugging purposes."); ?>"
+                >
                     <?php
                     /** @var bool $enableLog */
                     echo $form->checkbox('enableLog', 1, $enableLog);
@@ -193,41 +195,4 @@ use Concrete\Core\Support\Facade\Url;
             </div>
         </div>
     </form>
-
-    <?php
-    /** @var int $numberOfProcessedFiles */
-    if ($numberOfProcessedFiles > 0) {
-        ?>
-        <hr>
-
-        <div class="well">
-            <p>
-                <?php
-                echo t2(
-                    'The Image Optimizer has processed %d file.',
-                    'The Image Optimizer has processed %d files.',
-                    $numberOfProcessedFiles,
-                    $numberOfProcessedFiles
-                ) . ' ';
-                echo t('In case you want to rerun the Image Optimizer you can clear the log of processed files.') .' ';
-                echo t('This can be done without risk, but it will take some more time to finish the automated job next time.');
-                ?>
-            </p>
-
-            <form method="post" action="<?php echo $this->action('clear_processed_files'); ?>">
-                <?php
-                /** @var $token \Concrete\Core\Validation\CSRF\Token */
-                echo $token->output('a3020.image_optimizer.clear_processed_files');
-                ?>
-
-                <input type="submit"
-                   title="<?php echo t('Clearing the log of processed files is without risk.'); ?>"
-                   href="<?php echo $this->action('clear_processed_files') ?>"
-                   class="btn btn-danger"
-                   value="<?php echo t("Clear log of processed files"); ?>" />
-            </form>
-        </div>
-        <?php
-    }
-    ?>
 </div>
