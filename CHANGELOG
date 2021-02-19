@@ -1,3 +1,6 @@
+2.5.0
+- Add an 'image-optimizer-optimize' CLI command with progress bar.
+
 2.4.1
 - Fix 'touch' bug that was creating temp files.
 

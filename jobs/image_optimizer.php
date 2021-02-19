@@ -49,6 +49,7 @@ final class ImageOptimizer extends QueueableJob
      */
     public function start(\ZendQueue\Queue $q)
     {
+        /** @var Create $queue */
         $queue = $this->appInstance->make(Create::class);
         $queue->create($q);
     }
@@ -60,6 +61,7 @@ final class ImageOptimizer extends QueueableJob
      */
     public function processQueueItem(\ZendQueue\Message $msg)
     {
+        /** @var Process $queue */
         $queue = $this->appInstance->make(Process::class);
         $queue->process($msg);
     }
@@ -73,6 +75,7 @@ final class ImageOptimizer extends QueueableJob
      */
     public function finish(\ZendQueue\Queue $q)
     {
+        /** @var Finish $queue */
         $queue = $this->appInstance->make(Finish::class);
 
         return $queue->finish($q);

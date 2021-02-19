@@ -2,6 +2,8 @@
 
 namespace A3020\ImageOptimizer\Entity;
 
+use Concrete\Core\Entity\File\Version;
+use Concrete\Core\File\File;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -174,6 +176,32 @@ class ProcessedFile
     public function getPath()
     {
         return $this->path;
+    }
+
+    /**
+     * Returns computer path of the file
+     *
+     * If static file, return the path
+     * If c5 file, get the version, then return its path
+     *
+     * @return string|null
+     */
+    public function getComputedPath()
+    {
+        if ($this->path) {
+            return $this->path;
+        }
+
+        /** @var \Concrete\Core\Entity\File\File $file */
+        $file = File::getByID($this->getOriginalFileId());
+        if (!is_object($file)) {
+            // File may have been deleted
+            return null;
+        }
+
+        $fv = $file->getVersion($this->getFileVersionId());
+
+        return $fv ? $fv->getRelativePath() : null;
     }
 
     /**

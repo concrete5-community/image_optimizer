@@ -11,6 +11,7 @@ use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
+use Concrete\Core\Logging\Logger;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Exception;
@@ -33,40 +34,56 @@ class Process implements ApplicationAwareInterface
     /** @var MonthlyLimit */
     private $monthlyLimit;
 
-    public function __construct(Repository $config, EntityManager $entityManager, OptimizerChain $optimizerChain, MonthlyLimit $monthlyLimit)
+    /** @var Logger */
+    private $logger;
+
+    public function __construct(Repository $config, EntityManager $entityManager, OptimizerChain $optimizerChain, MonthlyLimit $monthlyLimit, Logger $logger)
     {
         $this->config = $config;
         $this->entityManager = $entityManager;
         $this->optimizerChain = $optimizerChain;
         $this->monthlyLimit = $monthlyLimit;
+        $this->logger = $logger;
     }
 
+    /**
+     * @param ZendQueueMessage $msg
+     *
+     * @return ProcessedFile|null
+     */
     public function process(ZendQueueMessage $msg)
     {
+        $processedFile = null;
+
         if ($this->monthlyLimit->reached()) {
-            return;
+            return null;
         }
 
         try {
             $body = json_decode($msg->body, true);
 
             if (isset($body['fID'])) {
-                $this->processFile(File::getByID($body['fID']));
+                $processedFile = $this->processFile(File::getByID($body['fID']));
             }
 
             if (isset($body['path'])) {
-                $this->processStaticFile($body['path']);
+                $processedFile = $this->processStaticFile($body['path']);
             }
         } catch (Exception $e) {
-            $logger = $this->app->make('log');
-            $logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
+            $this->logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
+
+            return null;
         }
+
+        return $processedFile;
     }
 
     /**
      * Optimizes files from File Manager.
      *
      * @param \Concrete\Core\Entity\File\File $file
+     *
+     * @return ProcessedFile
      */
     private function processFile($file)
     {
@@ -77,7 +94,7 @@ class Process implements ApplicationAwareInterface
         $processedFile = $repo->findOrCreateOriginal($file->getFileID(), $fileVersion->getFileVersionID());
 
         if ($processedFile->isProcessed()) {
-            return;
+            return null;
         }
 
         $relativePath = $fileVersion->getRelativePath();
@@ -103,12 +120,16 @@ class Process implements ApplicationAwareInterface
         $processedFile->setFileSizeReduction($fileSizeDiff);
 
         $this->save($processedFile);
+
+        return $processedFile;
     }
 
     /**
      * Optimize images in /application/files/* directories.
      *
      * @param string $path
+     *
+     * @return ProcessedFile|null
      */
     private function processStaticFile($path)
     {
@@ -117,7 +138,7 @@ class Process implements ApplicationAwareInterface
         $processedFile = $repo->findOrCreateDerived($path);
 
         if ($processedFile->isProcessed()) {
-            return;
+            return null;
         }
 
         $shouldSkip = $this->getSkipReason($path);
@@ -135,7 +156,7 @@ class Process implements ApplicationAwareInterface
 
             if ($this->getMaxSize() && $fileSizeBeforeOptimization >= $this->getMaxSize()) {
                 // Image is too big, let's skip this one
-                return;
+                return null;
             }
 
             $this->optimizerChain->optimize($path);
@@ -153,6 +174,8 @@ class Process implements ApplicationAwareInterface
         }
 
         $this->save($processedFile);
+
+        return $processedFile;
     }
 
     /**
