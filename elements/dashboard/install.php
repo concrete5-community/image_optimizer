@@ -2,6 +2,7 @@
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
+$pkgName = t('Image Optimizer');
 ?>
 
 <label for="acceptTerms" style="margin-bottom: 30px;">
@@ -26,7 +27,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
         '</a>'
     ).' ';
     echo "We can't continue developing high-quality add-ons if add-ons are redistributed without permission.".' ';
-    echo sprintf("Thanks for your comprehension, we hope you enjoy %s!", "Image Optimizer");
+    echo sprintf("Thanks for your comprehension, we hope you enjoy %s!", $pkgName);
     ?>
 </div>
 

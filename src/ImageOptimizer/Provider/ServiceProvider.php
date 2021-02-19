@@ -37,6 +37,14 @@ class ServiceProvider implements ApplicationAwareInterface
             }
         });
 
+        $this->dispatcher->addListener('on_thumbnail_generate', function($event) {
+            \Log::addDebug("Generate: ".$event->getPath());
+        });
+
+        $this->dispatcher->addListener('on_thumbnail_delete', function($event) {
+            \Log::addDebug("Delete: ".$event->getPath());
+        });
+
         /** @var RouterInterface $router */
         $router = $this->app->make(RouterInterface::class);
 
@@ -46,6 +54,9 @@ class ServiceProvider implements ApplicationAwareInterface
             ],
             '/ccm/system/image_optimizer/reset' => [
                 '\A3020\ImageOptimizer\Ajax\Reset::view',
+            ],
+            '/ccm/system/image_optimizer/foundation/dismiss_review' => [
+                '\A3020\ImageOptimizer\Ajax\Foundation\DismissReview::view',
             ],
         ]);
     }
