@@ -58,7 +58,7 @@ class Process implements ApplicationAwareInterface
                 $this->processCachedFile($body['path']);
             }
         } catch (Exception $e) {
-            $logger = $this->app->make('log/exceptions');
+            $logger = $this->app->make('log');
             $logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
         }
     }
