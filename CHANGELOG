@@ -1,3 +1,14 @@
+3.2.5
+- Add a precheck to verify that either TinyPNG is configured
+or that the server optimizers are installed.
+- Remove pre-install checkbox.
+- Improve the post-install dialog.
+- Add tooltips to buttons on Settings pages.
+- Move TinyPNG settings to their own page.
+- Make sure TinyPNG credentials are checked before saving them.
+- Improve handling TinyPNG exceptions e.g. in case the server couldn't
+be reached or the credentials are invalid.
+
 3.2.4
 - Cache results of Optimized Images page in order to load the page faster.
 - UI improvements; make optimized column more salient. Improve icons and tooltips.

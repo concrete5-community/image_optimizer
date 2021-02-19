@@ -18,7 +18,7 @@ if (!$app->make(\A3020\ImageOptimizer\Foundation\Review::class)->shouldShowNotif
     <button type="button" class="close" data-dismiss="alert">×</button>
     <p>
         <?php
-        echo t("Do you like the %s add-on and would you like to post a review? We will grant you a <strong>free license</strong> as a thank-you!",
+        echo t("Do you like the %s add-on and would you like to post a review? I will grant you a <strong>free license</strong> as a thank-you!",
             $pkgName
         );
         ?>

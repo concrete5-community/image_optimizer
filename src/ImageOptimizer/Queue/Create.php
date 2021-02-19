@@ -5,7 +5,6 @@ namespace A3020\ImageOptimizer\Queue;
 use A3020\ImageOptimizer\CacheImageList;
 use A3020\ImageOptimizer\Exception\MonthlyLimitReached;
 use A3020\ImageOptimizer\FileList;
-use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\ThumbnailFileList;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
@@ -22,29 +21,31 @@ class Create implements ApplicationAwareInterface
     private $config;
 
     /**
-     * @var MonthlyLimit
+     * @var Precheck
      */
-    private $monthlyLimit;
+    private $precheck;
 
-    public function __construct(Repository $config, MonthlyLimit $monthlyLimit)
+    public function __construct(Repository $config, Precheck $precheck)
     {
         $this->config = $config;
-        $this->monthlyLimit = $monthlyLimit;
+        $this->precheck = $precheck;
     }
 
     /**
      * @param ZendQueue $queue
      *
-     * @throws \Doctrine\DBAL\DBALException
-     * @throws MonthlyLimitReached
-     *
      * @return ZendQueue
+     *
+     * @throws MonthlyLimitReached
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws \Tinify\AccountException
+     * @throws \Tinify\ClientException
+     * @throws \Tinify\ConnectionException
+     * @throws \Tinify\ServerException
      */
     public function create(ZendQueue $queue)
     {
-        if ($this->monthlyLimit->reached()) {
-            throw new MonthlyLimitReached('Monthly limit reached.');
-        }
+        $this->precheck->check();
 
         if ($this->config->get('image_optimizer::settings.include_filemanager_images')) {
             /** @var FileList $list */

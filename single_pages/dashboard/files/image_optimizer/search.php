@@ -17,12 +17,16 @@ defined('C5_EXECUTE') or die('Access Denied.');
         echo $token->output('a3020.image_optimizer.reset_all');
         ?>
         <input type="submit"
-           class="btn btn-danger"
-           title="<?php echo t(''); ?>"
+           data-placement="bottom"
+           class="btn btn-danger launch-tooltip"
+           title="<?php echo t('Use this if you want to re-optimize all images. Once reset, statistics of optimized images will be gone.'); ?>"
            value="<?php echo t("Reset all files")?>" />
-        <a
-            title="<?php echo t('The Image Optimizer runs as an automated job'); ?>"
-            href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>" class="btn btn-default"><?php echo t("Go to Automated Jobs")?>
+
+        <a class="btn btn-success launch-tooltip"
+           data-placement="bottom"
+            title="<?php echo t('%s runs as an automated job', t('Image Optimizer')); ?>"
+            href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>">
+            <?php echo t("Run Image Optimizer")?>
         </a>
     </form>
 </div>

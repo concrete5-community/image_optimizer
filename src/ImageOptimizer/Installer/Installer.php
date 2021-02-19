@@ -57,6 +57,7 @@ class Installer implements ApplicationAwareInterface
             '/dashboard/files/image_optimizer' => 'Image Optimizer',
             '/dashboard/files/image_optimizer/search' => 'Optimized Images',
             '/dashboard/files/image_optimizer/settings' => 'Settings',
+            '/dashboard/files/image_optimizer/settings/tinypng' => 'Tinypng',
         ];
 
         foreach ($pages as $path => $name) {

@@ -6,14 +6,14 @@ use Concrete\Core\Support\Facade\Url;
 
 /** @var \Concrete\Core\Form\Service\Form $form */
 /** @var int $maxImageSize */
-/** @var int|null $tinyPngMaxOptimizationsPerMonth */
-/** @var int $tinyPngNumberOfCompressions */
 ?>
 
-<div class="ccm-dashboard-header-buttons btn-group">
-    <a
-        title="<?php echo t('The Image Optimizer runs as an automated job'); ?>"
-        href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>" class="btn btn-default"><?php echo t("Go to Automated Jobs")?>
+<div class="ccm-dashboard-header-buttons">
+    <a class="btn btn-success launch-tooltip"
+       data-placement="bottom"
+        title="<?php echo t('%s runs as an automated job', t('Image Optimizer')); ?>"
+        href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>">
+        <?php echo t("Run Image Optimizer")?>
     </a>
 </div>
 
@@ -74,6 +74,10 @@ use Concrete\Core\Support\Facade\Url;
                     ?>
                 </small>
             </div>
+        </fieldset>
+
+        <fieldset>
+            <legend><?php echo t('Advanced settings'); ?></legend>
 
             <div class="form-group">
                 <label class="control-label launch-tooltip"
@@ -126,67 +130,6 @@ use Concrete\Core\Support\Facade\Url;
                     'min' => 1,
                     'style'=> 'max-width: 350px',
                 ]);
-                ?>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>TinyPNG</legend>
-
-            <p>
-                <?php
-                echo t('TinyPNG is a cloud service that can optimize PNG and JPEG images. You can register an account '.
-                    'on <a href="%s" target="_blank">https://tinypng.com</a> to obtain an API-key.', 'https://tinypng.com');
-                ?>
-            </p>
-            <br>
-
-            <div class="form-group">
-                <label>
-                    <?php
-                    /** @var bool $tinyPngEnabled */
-                    echo $form->checkbox('tinyPngEnabled', 1, $tinyPngEnabled);
-                    ?>
-                    <?php
-                    echo t('Enable TinyPNG');
-                    ?>
-                </label>
-            </div>
-
-            <div class="form-group">
-                <?php
-                /** @var bool $tinyPngApiKey */
-                echo $form->label('tinyPngApiKey', t('TinyPNG API key'));
-                echo $form->text('tinyPngApiKey', $tinyPngApiKey);
-                ?>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0">
-                <label class="control-label launch-tooltip"
-                   title="<?php echo t('Per month, you can perform %d optimizations for free!', 500) ?>"
-                   for="tinyPngMaxOptimizationsPerMonth"
-                >
-                    <?php
-                    echo $form->label('tinyPngMaxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
-                    ?>
-                </label>
-
-                <?php
-                echo $form->number('tinyPngMaxOptimizationsPerMonth', $tinyPngMaxOptimizationsPerMonth, [
-                    'placeholder' => t('Leave empty to not set a maximum'),
-                    'min' => 0,
-                    'style'=> 'max-width: 350px',
-                ]);
-                ?>
-
-                <?php
-                if ($tinyPngNumberOfCompressions !== null) {
-                    echo '<small class="help-block">';
-
-                    echo t('Number of compressions this month: %s.', $tinyPngNumberOfCompressions);
-
-                    echo '</small>';
-                }
                 ?>
             </div>
         </fieldset>

@@ -1,6 +1,6 @@
 <?php
 
-namespace A3020\ImageOptimizer\Optimizers;
+namespace A3020\ImageOptimizer\Optimizer;
 
 class Jpegoptim extends BaseOptimizer
 {

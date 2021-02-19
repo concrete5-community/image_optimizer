@@ -2,7 +2,6 @@
 
 namespace A3020\ImageOptimizer\Queue;
 
-use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
@@ -26,17 +25,24 @@ class Finish implements ApplicationAwareInterface
     private $repository;
 
     /**
-     * @var MonthlyLimit
+     * @var Precheck
      */
-    private $monthlyLimit;
+    private $precheck;
 
-    public function __construct(Repository $config, ProcessedFilesRepository $repository, MonthlyLimit $monthlyLimit)
+    public function __construct(Repository $config, ProcessedFilesRepository $repository, Precheck $precheck)
     {
         $this->config = $config;
         $this->repository = $repository;
-        $this->monthlyLimit = $monthlyLimit;
+        $this->precheck = $precheck;
     }
 
+    /**
+     * @param ZendQueue $q
+     *
+     * @return string
+     *
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function finish(ZendQueue $q)
     {
         $nh = $this->app->make('helper/number');
@@ -55,8 +61,15 @@ class Finish implements ApplicationAwareInterface
         );
     }
 
-    public function monthlyLimitReached()
+    /**
+     * @throws \A3020\ImageOptimizer\Exception\MonthlyLimitReached
+     * @throws \Tinify\AccountException
+     * @throws \Tinify\ClientException
+     * @throws \Tinify\ConnectionException
+     * @throws \Tinify\ServerException
+     */
+    public function precheck()
     {
-        return $this->monthlyLimit->reached();
+        $this->precheck->check();
     }
 }

@@ -12,6 +12,7 @@ use Concrete\Core\Console\ConsoleAwareInterface;
 use Concrete\Core\Console\ConsoleAwareTrait;
 use Concrete\Core\Job\QueueableJob;
 use Concrete\Core\Support\Facade\Application;
+use Exception;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
@@ -69,8 +70,6 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
      * Start the job by creating a queue.
      *
      * @param \ZendQueue\Queue $q
-     *
-     * @throws \Doctrine\DBAL\DBALException
      */
     public function start(\ZendQueue\Queue $q)
     {
@@ -86,7 +85,10 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
                 $this->progressBar = new ProgressBar($output, $queue->count());
                 $this->progressBar->display();
             }
-        } catch (MonthlyLimitReached $e) {}
+        } catch (Exception $e) {
+            // We can't report back here, because in a queueable job
+            // there are multiple requests. Throwing an exception here is useless.
+        }
     }
 
     /**
@@ -132,8 +134,16 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
         /** @var Finish $queue */
         $queue = $this->appInstance->make(Finish::class);
 
-        if ($queue->monthlyLimitReached()) {
+        try {
+            $queue->precheck();
+        } catch (MonthlyLimitReached $e) {
             return t('Stopped because the monthly limit is reached.');
+        } catch (Exception $e) {
+            if ($e instanceof \Tinify\Exception) {
+                throw new Exception(t('TinyPNG error: %s', $e->getMessage()));
+            }
+
+            throw $e;
         }
 
         if (!$this->hasConsole()) {
