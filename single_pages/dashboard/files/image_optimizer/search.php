@@ -25,7 +25,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
     </form>
 </div>
 
-<div class="ccm-dashboard-content-inner">
+<div class="ccm-dashboard-content-inner page-optimized-images">
     <?php
     $this->element('/dashboard/review_notification', [], 'image_optimizer');
     ?>
@@ -85,7 +85,17 @@ defined('C5_EXECUTE') or die('Access Denied.');
             columns: [
                 {
                     data: function(row, type, val) {
-                        return '<a target="_blank" href="'+row.path+'">'+row.path+'</a>';
+                        if (type === 'display') {
+                            var html = '';
+                            html += '<div class="thumb" style="background-image: url(\''+row.path+'\')">';
+                            html += '<a target="_blank" href="' + row.path + '"></a>';
+                            html += '</div>';
+                            html += '<div class="path"><a target="_blank" href="' + row.path + '">' + row.path + '</a></div>';
+
+                            return html;
+                        }
+
+                        return row.path;
                     }
                 },
                 {

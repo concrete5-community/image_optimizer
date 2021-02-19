@@ -1,3 +1,6 @@
+2.3.5
+- Show thumbs on Optimized Images page.
+
 2.3.4
 - Hook into thumbnail delete event. This will make sure that if thumbnails are deleted
 the associated statistics are also removed. This e.g. applies to a thumbnail 'Rescan'.

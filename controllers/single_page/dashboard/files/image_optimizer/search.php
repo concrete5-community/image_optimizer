@@ -23,8 +23,10 @@ final class Search extends DashboardPageController
         $al->register('javascript', 'image_optimizer/datatables', 'js/datatables.min.js', [], 'image_optimizer');
         $this->requireAsset('javascript', 'image_optimizer/datatables');
 
-        $al->register('css', 'gdpr/image_optimizer', 'css/datatables.css', [], 'image_optimizer');
+        $al->register('css', 'image_optimizer/datatables', 'css/datatables.css', [], 'image_optimizer');
+        $al->register('css', 'image_optimizer/style', 'css/style.css', [], 'image_optimizer');
         $this->requireAsset('css', 'image_optimizer/datatables');
+        $this->requireAsset('css', 'image_optimizer/style');
     }
 
     public function view()
