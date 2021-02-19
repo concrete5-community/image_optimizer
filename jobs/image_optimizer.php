@@ -72,8 +72,10 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
         $createQueue = $this->appInstance->make(Create::class);
         $queue = $createQueue->create($q);
 
-        $this->progressBar = new ProgressBar($output, $queue->count());
-        $this->progressBar->display();
+        if ($this->hasConsole()) {
+            $this->progressBar = new ProgressBar($output, $queue->count());
+            $this->progressBar->display();
+        }
     }
 
     /**
@@ -90,15 +92,17 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
             return;
         }
 
-        $this->progressBar->advance();
-        $this->getOutput()
-            ->writeln(' ' .
-                $processedFile->getComputedPath() . ' '.
-                $processedFile->getFileSizeReduction() .' bytes'
-            );
+        if ($this->hasConsole()) {
+            $this->progressBar->advance();
+            $this->getOutput()
+                ->writeln(' ' .
+                    $processedFile->getComputedPath() . ' ' .
+                    $processedFile->getFileSizeReduction() . ' bytes'
+                );
 
-        $this->totalBytesSaved += $processedFile->getFileSizeReduction();
-        $this->totalImagesOptimized++;
+            $this->totalBytesSaved += $processedFile->getFileSizeReduction();
+            $this->totalImagesOptimized++;
+        }
     }
 
     /**

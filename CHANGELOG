@@ -1,3 +1,6 @@
+3.0.1
+- Fix 'Call to a member function advance() on null' error when running the job manually.
+
 3.0.0
 - Bump minimum version required to 8.3.1 to improve the CLI mode of the automated job.
 - Remove the 'image-optimizer-optimize' CLI command in favor of the 'c5:job image_optimizer' command.
