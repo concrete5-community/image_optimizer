@@ -3,7 +3,7 @@
 namespace A3020\ImageOptimizer\Finder;
 
 use Concrete\Core\Config\Repository\Repository;
-use DirectoryIterator;
+use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 class Finder
 {
@@ -21,9 +21,6 @@ class Finder
         $this->config = $config;
     }
 
-    /**
-     * @return \Iterator
-     */
     public function cacheImages()
     {
         $dir = $this->config->get('concrete.cache.directory');
@@ -31,7 +28,8 @@ class Finder
             return new \EmptyIterator();
         }
 
-        $iterator = new DirectoryIterator($dir);
-        return new CacheImageFilterIterator($iterator);
+        $finder = new \Symfony\Component\Finder\Finder();
+
+        return $finder->files()->name('/\.(?:jpe?g|png|gif)$/')->in($dir);
     }
 }

@@ -18,6 +18,7 @@ use Concrete\Core\Support\Facade\Application;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use League\Flysystem\Cached\Storage\Psr6Cache;
+use Symfony\Component\Finder\SplFileInfo;
 use ZendQueue\Message as ZendQueueMessage;
 use ZendQueue\Queue as ZendQueue;
 
@@ -84,9 +85,7 @@ final class ImageOptimizer extends QueueableJob
                 $fl->filterByAttribute($akHandle, false);
             }
 
-            $results = $fl->executeGetResults();
-
-            foreach ($results as $row) {
+            foreach ($fl->executeGetResults() as $row) {
                 $payload = json_encode([
                     'fID' => $row['fID'],
                 ]);
@@ -95,11 +94,12 @@ final class ImageOptimizer extends QueueableJob
         }
 
         if ($this->config->get('image_optimizer.include_cached_images')) {
+            /** @var Finder $finder */
             $finder = $this->appInstance->make(Finder::class);
-            foreach ($finder->cacheImages() as $fileName) {
-                $fileName = (string) $fileName;
+            foreach ($finder->cacheImages() as $file) {
+                /** @var SplFileInfo $file */
                 $payload = json_encode([
-                    'fileName' => $fileName,
+                    'path' => (string) $file->getRelativePathname(),
                 ]);
                 $q->send($payload);
             }
@@ -120,8 +120,8 @@ final class ImageOptimizer extends QueueableJob
             $this->processFile($file);
         }
 
-        if (isset($body['fileName'])) {
-            $this->processCachedFile($body['fileName']);
+        if (isset($body['path'])) {
+            $this->processCachedFile($body['path']);
         }
     }
 
@@ -172,29 +172,30 @@ final class ImageOptimizer extends QueueableJob
     /**
      * Optimize images in /application/files/cache directory.
      *
-     * @param string $fileName
+     * @param string $path
      */
-    private function processCachedFile($fileName)
+    private function processCachedFile($path)
     {
         /** @var ProcessedCacheFilesRepository $repo */
         $repo = $this->appInstance->make(ProcessedCacheFilesRepository::class);
-        $record = $repo->findOrCreate($fileName);
+        $record = $repo->findOrCreate($path);
 
         if ($record->isProcessed()) {
             return;
         }
 
-        $pathToImage = $this->config->get('concrete.cache.directory') . '/'. $fileName;
+        // We stored a relative path in the database.
+        $path = $this->config->get('concrete.cache.directory').'/'.$path;
 
         // Only optimize if the file is still on the file system
-        if (file_exists($pathToImage)) {
-            $fileSizeBeforeOptimization = filesize($pathToImage);
-            $this->optimizerChain->optimize($pathToImage);
+        if (file_exists($path)) {
+            $fileSizeBeforeOptimization = filesize($path);
+            $this->optimizerChain->optimize($path);
 
             // Results of filesize can be cached
             clearstatcache();
 
-            $fileSizeAfterOptimization = filesize($pathToImage);
+            $fileSizeAfterOptimization = filesize($path);
 
             $fileSizeDiff = $fileSizeBeforeOptimization - $fileSizeAfterOptimization;
             $record->setFileSizeReduction($fileSizeDiff);

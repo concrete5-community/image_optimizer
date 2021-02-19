@@ -14,7 +14,7 @@ class CacheImageFilterIterator extends FilterIterator
         $fileInfo = $this->current();
 
         if ($fileInfo->isDir()) {
-            return false;
+            return true;
         }
 
         $fileName = $fileInfo->getFilename();

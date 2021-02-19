@@ -26,7 +26,7 @@ class ProcessedCacheFile
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    protected $processedAt;
+    protected $processedAt = null;
 
     /**
      * @ORM\Column(type="integer", nullable=false)
