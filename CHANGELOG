@@ -1,3 +1,6 @@
+3.0.3
+- Code improvements.
+
 3.0.2
 - Improve query to get a list of files that need to be optimized. (huge performance win)
 - Fix bug if job stopped unexpectedly and progressbar wasn't set on next run.

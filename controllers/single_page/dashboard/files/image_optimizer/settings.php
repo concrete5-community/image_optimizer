@@ -2,34 +2,30 @@
 
 namespace Concrete\Package\ImageOptimizer\Controller\SinglePage\Dashboard\Files\ImageOptimizer;
 
-use A3020\ImageOptimizer\Statistics\Month;
-use Concrete\Core\Config\Repository\Repository;
+use A3020\ImageOptimizer\RequestHandler\SaveSettings;
+use A3020\ImageOptimizer\RequestHandler\ViewSettings;
 use Concrete\Core\Page\Controller\DashboardPageController;
 
 final class Settings extends DashboardPageController
 {
-    /** @var Repository $config */
-    protected $config;
-
     public function view()
     {
-        $this->config = $this->app->make(Repository::class);
+        /** @var ViewSettings $handler */
+        $handler = $this->app->make(ViewSettings::class);
 
         $this->set('thumbnailImageDirectory', DIR_FILES_UPLOADED_STANDARD.REL_DIR_FILES_THUMBNAILS);
-        $this->set('cacheDirectory', $this->config->get('concrete.cache.directory'));
-        $this->set('numberOfProcessedFiles', $this->getNumberOfProcessedFiles());
-        $this->set('enableLog', (bool) $this->config->get('image_optimizer.enable_log'));
-        $this->set('includeFilemanagerImages', (bool) $this->config->get('image_optimizer.include_filemanager_images'));
-        $this->set('includeThumbnailImages', (bool) $this->config->get('image_optimizer.include_thumbnail_images', true));
-        $this->set('includeCachedImages', (bool) $this->config->get('image_optimizer.include_cached_images'));
-        $this->set('batchSize', max((int) $this->config->get('image_optimizer.batch_size'), 1));
-        $this->set('maxOptimizationsPerMonth', $this->config->get('image_optimizer.max_optimizations_per_month'));
-        $this->set('maxImageSize', $this->config->get('image_optimizer.max_image_size'));
-
-        $this->set('tinyPngEnabled', (bool) $this->config->get('image_optimizer.tiny_png.enabled'));
-        $this->set('tinyPngApiKey', $this->config->get('image_optimizer.tiny_png.api_key'));
-
-        $this->set('numberOfOptimizationsThisMonth', $this->getNumberOfOptimizationsThisMonth());
+        $this->set('cacheDirectory', $handler->config->get('concrete.cache.directory'));
+        $this->set('enableLog', (bool) $handler->config->get('image_optimizer.enable_log'));
+        $this->set('includeFilemanagerImages', (bool) $handler->config->get('image_optimizer.include_filemanager_images'));
+        $this->set('includeThumbnailImages', (bool) $handler->config->get('image_optimizer.include_thumbnail_images', true));
+        $this->set('includeCachedImages', (bool) $handler->config->get('image_optimizer.include_cached_images'));
+        $this->set('batchSize', max((int) $handler->config->get('image_optimizer.batch_size'), 1));
+        $this->set('maxOptimizationsPerMonth', $handler->config->get('image_optimizer.max_optimizations_per_month'));
+        $this->set('maxImageSize', $handler->config->get('image_optimizer.max_image_size'));
+        $this->set('tinyPngEnabled', (bool) $handler->config->get('image_optimizer.tiny_png.enabled'));
+        $this->set('tinyPngApiKey', $handler->config->get('image_optimizer.tiny_png.api_key'));
+        $this->set('numberOfProcessedFiles', $handler->getNumberOfProcessedFiles());
+        $this->set('numberOfOptimizationsThisMonth', $handler->getNumberOfOptimizationsThisMonth());
     }
 
     public function save()
@@ -39,51 +35,21 @@ final class Settings extends DashboardPageController
             return $this->view();
         }
 
-        /** @var Repository $enableLog */
-        $config = $this->app->make(Repository::class);
+        /** @var SaveSettings $handler */
+        $handler = $this->app->make(SaveSettings::class);
 
-        $config->save('image_optimizer.enable_log', (bool) $this->post('enableLog'));
-        $config->save('image_optimizer.include_filemanager_images', (bool) $this->post('includeFilemanagerImages'));
-        $config->save('image_optimizer.include_thumbnail_images', (bool) $this->post('includeThumbnailImages'));
-        $config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
-        $config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
-
-        $maxOptimizationsPerMonth = (int) $this->post('maxOptimizationsPerMonth');
-        if (empty($maxOptimizationsPerMonth)) {
-            $maxOptimizationsPerMonth = null;
-        }
-
-        $config->save('image_optimizer.max_optimizations_per_month', $maxOptimizationsPerMonth);
-
-        $maxImageSize = (int) $this->post('maxImageSize');
-        if (empty($maxImageSize)) {
-            $maxImageSize = null;
-        }
-
-        $config->save('image_optimizer.max_image_size', $maxImageSize);
-        $config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
-        $config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));
+        $handler->config->save('image_optimizer.enable_log', (bool) $this->post('enableLog'));
+        $handler->config->save('image_optimizer.include_filemanager_images', (bool) $this->post('includeFilemanagerImages'));
+        $handler->config->save('image_optimizer.include_thumbnail_images', (bool) $this->post('includeThumbnailImages'));
+        $handler->config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
+        $handler->config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
+        $handler->config->save('image_optimizer.max_optimizations_per_month', $handler->getOrNull('maxOptimizationsPerMonth'));
+        $handler->config->save('image_optimizer.max_image_size', $handler->getOrNull('maxImageSize'));
+        $handler->config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
+        $handler->config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));
 
         $this->flash('success', t('Your settings have been saved.'));
 
         return $this->redirect('/dashboard/files/image_optimizer/settings');
-    }
-
-    /**
-     * @return int
-     */
-    private function getNumberOfProcessedFiles()
-    {
-        $db = $this->app->make('database')->connection();
-        return (int) $db->fetchColumn('
-            SELECT COUNT(1) FROM ImageOptimizerProcessedFiles 
-        ');
-    }
-
-    private function getNumberOfOptimizationsThisMonth()
-    {
-        $statistics = $this->app->make(Month::class);
-
-        return $statistics->total();
     }
 }
