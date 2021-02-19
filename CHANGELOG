@@ -1,3 +1,6 @@
+3.2.3
+- Correctly remove cache files from optimized files table, in case the cache is flushed.
+
 3.2.2
 - Prevent having to reprocess thumbnails. Run the "Fill thumbnail database table" automated job first, to get the best results.
 - Skip files that are empty or that don't exist anymore.
