@@ -1,0 +1,141 @@
+<?php
+
+namespace A3020\ImageOptimizer;
+
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Process\Process;
+
+class OptimizerChain
+{
+    /* @var \A3020\ImageOptimizer\Optimizer[] */
+    protected $optimizers = [];
+
+    /** @var \Psr\Log\LoggerInterface */
+    protected $logger;
+
+    /** @var int */
+    protected $timeout = 60;
+
+    public function __construct()
+    {
+        $this->useLogger(new DummyLogger());
+    }
+
+    /**
+     * @return Optimizer[]
+     */
+    public function getOptimizers()
+    {
+        return $this->optimizers;
+    }
+
+    /**
+     * @param Optimizer $optimizer
+     * @return $this
+     */
+    public function addOptimizer($optimizer)
+    {
+        $this->optimizers[] = $optimizer;
+
+        return $this;
+    }
+
+    /**
+     * @param array $optimizers
+     * @return $this
+     */
+    public function setOptimizers(array $optimizers)
+    {
+        $this->optimizers = [];
+
+        foreach ($optimizers as $optimizer) {
+            $this->addOptimizer($optimizer);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the amount of seconds each separate optimizer may use.
+     *
+     * @param $timeoutInSeconds
+     * @return $this
+     */
+    public function setTimeout($timeoutInSeconds)
+    {
+        $this->timeout = $timeoutInSeconds;
+
+        return $this;
+    }
+
+    public function useLogger(LoggerInterface $log)
+    {
+        $this->logger = $log;
+
+        return $this;
+    }
+
+    /**
+     * @param string $pathToImage
+     * @param string $pathToOutput
+     */
+    public function optimize($pathToImage, $pathToOutput = null)
+    {
+        if ($pathToOutput) {
+            copy($pathToImage, $pathToOutput);
+
+            $pathToImage = $pathToOutput;
+        }
+
+        $image = new Image($pathToImage);
+
+        $this->logger->info("Start optimizing {$pathToImage}");
+
+        foreach ($this->optimizers as $optimizer) {
+            $this->applyOptimizer($optimizer, $image);
+        }
+    }
+
+    /**
+     * @param Optimizer $optimizer
+     * @param Image $image
+     */
+    protected function applyOptimizer($optimizer, $image)
+    {
+        if (! $optimizer->canHandle($image)) {
+            return;
+        }
+
+        $optimizerClass = get_class($optimizer);
+
+        $this->logger->info("Using optimizer: `{$optimizerClass}`");
+
+        $optimizer->setImagePath($image->path());
+
+        $command = $optimizer->getCommand();
+
+        $this->logger->info("Executing `{$command}`");
+
+        $process = new Process($command);
+
+        $process
+            ->setTimeout($this->timeout)
+            ->run();
+
+        $this->logResult($process);
+    }
+
+    /**
+     * @param Process $process
+     */
+    protected function logResult($process)
+    {
+        if (! $process->isSuccessful()) {
+            $this->logger->error("Process errored with `{$process->getErrorOutput()}`}");
+
+            return;
+        }
+
+        $this->logger->info("Process successfully ended with output `{$process->getOutput()}`");
+    }
+}
