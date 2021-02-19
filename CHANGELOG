@@ -1,3 +1,6 @@
+2.5.1
+- Fix query error when clearing the cache and 'Clear cached thumbnails' is checked on.
+
 2.5.0
 - Add an 'image-optimizer-optimize' CLI command with progress bar.
 
