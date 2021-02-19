@@ -3,7 +3,6 @@
 namespace A3020\ImageOptimizer\Finder;
 
 use Concrete\Core\Config\Repository\Repository;
-use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 class Finder
 {

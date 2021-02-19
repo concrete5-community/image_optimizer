@@ -15,10 +15,12 @@ final class ImageOptimizer extends DashboardPageController
     {
         $this->config = $this->app->make(Repository::class);
 
+        $this->set('thumbnailImageDirectory', DIR_FILES_UPLOADED_STANDARD.REL_DIR_FILES_THUMBNAILS);
         $this->set('cacheDirectory', $this->config->get('concrete.cache.directory'));
         $this->set('numberOfProcessedFiles', $this->getNumberOfProcessedFiles());
         $this->set('enableLog', (bool) $this->config->get('image_optimizer.enable_log'));
         $this->set('includeFilemanagerImages', (bool) $this->config->get('image_optimizer.include_filemanager_images'));
+        $this->set('includeThumbnailImages', (bool) $this->config->get('image_optimizer.include_thumbnail_images', true));
         $this->set('includeCachedImages', (bool) $this->config->get('image_optimizer.include_cached_images'));
         $this->set('batchSize', max((int) $this->config->get('image_optimizer.batch_size'), 1));
         $this->set('maxOptimizationsPerMonth', $this->config->get('image_optimizer.max_optimizations_per_month'));
@@ -42,6 +44,7 @@ final class ImageOptimizer extends DashboardPageController
 
         $config->save('image_optimizer.enable_log', (bool) $this->post('enableLog'));
         $config->save('image_optimizer.include_filemanager_images', (bool) $this->post('includeFilemanagerImages'));
+        $config->save('image_optimizer.include_thumbnail_images', (bool) $this->post('includeThumbnailImages'));
         $config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
         $config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
 

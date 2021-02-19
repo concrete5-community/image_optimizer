@@ -55,7 +55,7 @@ class Process implements ApplicationAwareInterface
             }
 
             if (isset($body['path'])) {
-                $this->processCachedFile($body['path']);
+                $this->processStaticFile($body['path']);
             }
         } catch (Exception $e) {
             $logger = $this->app->make('log');
@@ -102,11 +102,11 @@ class Process implements ApplicationAwareInterface
     }
 
     /**
-     * Optimize images in /application/files/cache directory.
+     * Optimize images in /application/files/* directories.
      *
      * @param string $path
      */
-    private function processCachedFile($path)
+    private function processStaticFile($path)
     {
         /** @var ProcessedCacheFilesRepository $repo */
         $repo = $this->app->make(ProcessedCacheFilesRepository::class);
@@ -117,7 +117,8 @@ class Process implements ApplicationAwareInterface
         }
 
         // We stored a relative path in the database.
-        $path = $this->config->get('concrete.cache.directory').'/'.$path;
+        // Let's make it absolute now.
+        $path = DIR_FILES_UPLOADED_STANDARD.'/'.$path;
 
         // Only optimize if the file is still on the file system
         if (file_exists($path)) {

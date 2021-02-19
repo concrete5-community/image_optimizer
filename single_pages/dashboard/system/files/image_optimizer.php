@@ -2,6 +2,8 @@
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
+use Concrete\Core\Support\Facade\Url;
+
 /** @var \Concrete\Core\Form\Service\Form $form */
 /** @var int $numberOfOptimizationsThisMonth */
 /** @var int $maxImageSize */
@@ -10,7 +12,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
 <div class="ccm-dashboard-header-buttons btn-group">
     <a
         title="<?php echo t('The Image Optimizer runs as an automated job'); ?>"
-        href="<?php echo URL::to('/dashboard/system/optimization/jobs'); ?>" class="btn btn-default"><?php echo t("Go to Automated Jobs")?>
+        href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>" class="btn btn-default"><?php echo t("Go to Automated Jobs")?>
     </a>
 </div>
 
@@ -25,7 +27,9 @@ defined('C5_EXECUTE') or die('Access Denied.');
             <legend><?php echo t('General'); ?></legend>
 
             <div class="form-group">
-                <label>
+                <label class="control-label launch-tooltip"
+                        title="<?php echo t("If you don't want to optimize the original files, you can disable this option."); ?>"
+                >
                     <?php
                     /** @var bool $includeFilemanagerImages*/
                     echo $form->checkbox('includeFilemanagerImages', 1, $includeFilemanagerImages);
@@ -35,7 +39,27 @@ defined('C5_EXECUTE') or die('Access Denied.');
             </div>
 
             <div class="form-group">
-                <label>
+                <label class="control-label launch-tooltip"
+                   title="<?php echo t("Thumbnail Types ar often used by galleries. You probably want this setting to be enabled. In case no thumbnails are optimized, make sure you re-run the '%s' Automated Job.", t("Fill thumbnail database table")); ?>"
+                >
+                    <?php
+                    /** @var bool $includeThumbnailImages */
+                    echo $form->checkbox('includeThumbnailImages', 1, $includeThumbnailImages);
+                    ?>
+                    <?php echo t('Include thumbnail images')?><br>
+                    <small>
+                        <?php
+                        /** @var string $thumbnailImageDirectory **/
+                        echo $thumbnailImageDirectory;
+                        ?>
+                    </small>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label launch-tooltip"
+                       title="<?php echo t("This will optimize all images found in the cache directory. This also includes cache images that are created via the getThumbnail function. It's recommend to enable this setting."); ?>"
+                >
                     <?php
                     /** @var bool $includeCachedImages */
                     echo $form->checkbox('includeCachedImages', 1, $includeCachedImages);
@@ -63,8 +87,16 @@ defined('C5_EXECUTE') or die('Access Denied.');
             </div>
 
             <div class="form-group">
+                <label class="control-label launch-tooltip"
+                   title="<?php echo t("If you run into time-out issues, you may want to decrease the batch size. (how many images are processed in a single request)") ?>"
+                   for="batchSize"
+                >
+                    <?php
+                    echo t('Batch size for automated job');
+                    ?>
+                </label>
+
                 <?php
-                echo $form->label('batchSize', t('Batch size for automated job'));
                 /** @var int $batchSize */
                 echo $form->number('batchSize', $batchSize, [
                     'placeholder' => t('Default: %s', 5),
@@ -75,8 +107,16 @@ defined('C5_EXECUTE') or die('Access Denied.');
             </div>
 
             <div class="form-group">
+                <label class="control-label launch-tooltip"
+                       title="<?php echo t("This is interesting if you use TinyPNG. %d optimizations per month are for free!", 500) ?>"
+                       for="maxOptimizationsPerMonth"
+                >
+                    <?php
+                    echo $form->label('maxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
+                    ?>
+                </label>
+
                 <?php
-                echo $form->label('maxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
                 /** @var int|null $maxOptimizationsPerMonth */
                 echo $form->number('maxOptimizationsPerMonth', $maxOptimizationsPerMonth, [
                     'placeholder' => t('Leave empty to not set a maximum'),
@@ -91,8 +131,16 @@ defined('C5_EXECUTE') or die('Access Denied.');
             </div>
 
             <div class="form-group" style="margin-bottom: 0">
+                <label class="control-label launch-tooltip"
+                       title="<?php echo t("Set a maximum here if your server can't handle the big images you are trying to optimize") ?>"
+                       for="maxImageSize"
+                >
+                    <?php
+                    echo t("Don't optimize images bigger than ... KB");
+                    ?>
+                </label>
+
                 <?php
-                echo $form->label('maxImageSize', t("Don't optimize images bigger than ... KB"));
                 /** @var int|null $maxImageSize */
                 echo $form->number('maxImageSize', $maxImageSize, [
                     'placeholder' => t('Leave empty to not set a maximum'),
@@ -135,11 +183,15 @@ defined('C5_EXECUTE') or die('Access Denied.');
             </div>
         </fieldset>
 
-        <?php
-        echo $form->submit('submit', t('Save'), [
-            'class' => 'btn-primary'
-        ]);
-        ?>
+        <div class="ccm-dashboard-form-actions-wrapper">
+            <div class="ccm-dashboard-form-actions">
+                <?php
+                echo $form->submit('submit', t('Save'), [
+                    'class' => 'btn-primary pull-right',
+                ]);
+                ?>
+            </div>
+        </div>
     </form>
 
     <?php

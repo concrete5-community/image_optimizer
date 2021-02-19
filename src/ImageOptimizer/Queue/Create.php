@@ -5,6 +5,7 @@ namespace A3020\ImageOptimizer\Queue;
 use A3020\ImageOptimizer\FileList;
 use A3020\ImageOptimizer\Finder\Finder;
 use A3020\ImageOptimizer\MonthlyLimit;
+use A3020\ImageOptimizer\ThumbnailFileList;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
@@ -47,13 +48,23 @@ class Create implements ApplicationAwareInterface
             }
         }
 
+        if ($this->config->get('image_optimizer.include_thumbnail_images', true)) {
+            /** @var ThumbnailFileList $fl */
+            $fl = $this->app->make(ThumbnailFileList::class);
+            foreach ($fl->get() as $row) {
+                $q->send(json_encode([
+                    'path' => $row['path'],
+                ]));
+            }
+        }
+
         if ($this->config->get('image_optimizer.include_cached_images')) {
             /** @var Finder $finder */
             $finder = $this->app->make(Finder::class);
             foreach ($finder->cacheImages() as $file) {
                 /** @var SplFileInfo $file */
                 $q->send(json_encode([
-                    'path' => (string) $file->getRelativePathname(),
+                    'path' => 'cache/'.(string) $file->getRelativePathname(),
                 ]));
             }
         }
