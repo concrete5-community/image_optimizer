@@ -1,3 +1,6 @@
+3.2.11
+- Use finfo fallback if the mime_content_type function is not available.
+
 3.2.10
 - Let's not use the server side optimizers in case TinyPNG is configured and enabled.
 - Add additional logging in case a thumbnail type cannot be found.
