@@ -2,12 +2,12 @@
 
 namespace A3020\ImageOptimizer\Ajax\Foundation;
 
-use A3020\ImageOptimizer\Controller\AjaxController;
+use A3020\ImageOptimizer\Ajax\BaseController;
 
-class DismissReview extends AjaxController
+class DismissReview extends BaseController
 {
     public function view()
     {
-        $this->config->save('image_optimizer.foundation.review.is_dismissed', true);
+        $this->config->save('image_optimizer::settings.foundation.review.is_dismissed', true);
     }
 }

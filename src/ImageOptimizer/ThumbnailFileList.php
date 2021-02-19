@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer;
 
+use A3020\ImageOptimizer\Entity\ProcessedFile;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Database\Connection\Connection;
 
@@ -24,14 +25,32 @@ class ThumbnailFileList
     }
 
     /**
-     * Return a list of thumbnail paths that haven't been optimized
+     * Return a list of thumbnails that haven't been optimized.
      *
-     * @return array
+     * @return array [
+     *   'fileId' => int
+     *   'fileVersionId' => int
+     *   'thumbnailTypeHandle' => string
+     * ]
+     *
+     * PS. I tried converting this to a join query, but got stuck terribly.
      */
     public function get()
     {
-        return $this->db->fetchAll('SELECT tp.path FROM FileImageThumbnailPaths tp
-            LEFT JOIN ImageOptimizerProcessedFiles pf ON pf.path = tp.path
-            WHERE pf.path IS NULL AND tp.isBuilt=1');
+        $available = $this->db->fetchAll('
+            SELECT fileID as fileId, fileVersionID as fileVersionId, thumbnailTypeHandle 
+            FROM FileImageThumbnailPaths
+            WHERE isBuilt = 1
+        ');
+
+        $processed = $this->db->fetchAll('
+            SELECT originalFileId as fileId, fileVersionId, thumbnailTypeHandle 
+            FROM ImageOptimizerProcessedFiles 
+            WHERE `type` = ?
+        ', [ProcessedFile::TYPE_THUMBNAIL]);
+
+        return array_udiff($available, $processed, function($row1, $row2) {
+            return strcmp(serialize($row1), serialize($row2));
+        });
     }
 }

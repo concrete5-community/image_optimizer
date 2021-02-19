@@ -1,20 +1,27 @@
 <?php
 
-namespace A3020\ImageOptimizer\Listener\ThumbnailDelete;
+namespace A3020\ImageOptimizer\Listener;
 
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
+use Concrete\Core\Logging\Logger;
 use Exception;
 
-class RemoveProcessedFile
+class ThumbnailDelete
 {
     /**
      * @var ProcessedFilesRepository
      */
     private $repository;
 
-    public function __construct(ProcessedFilesRepository $repository)
+    /**
+     * @var Logger
+     */
+    private $logger;
+
+    public function __construct(ProcessedFilesRepository $repository, Logger $logger)
     {
         $this->repository = $repository;
+        $this->logger = $logger;
     }
 
     /**
@@ -28,6 +35,8 @@ class RemoveProcessedFile
     {
         try {
             $this->repository->removeByPath($event->getPath());
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            $this->logger->addDebug($e->getMessage());
+        }
     }
 }

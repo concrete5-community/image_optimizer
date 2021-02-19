@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer\Installer;
 
+use A3020\ImageOptimizer\Migration\Iterator;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
@@ -29,17 +30,21 @@ class Installer implements ApplicationAwareInterface
      */
     private $config;
 
-    public function __construct(Repository $config, EntityManager $entityManager)
+    /**
+     * @var Iterator
+     */
+    private $iterator;
+
+    public function __construct(Repository $config, EntityManager $entityManager, Iterator $iterator)
     {
         $this->config = $config;
         $this->entityManager = $entityManager;
+        $this->iterator = $iterator;
     }
 
     public function install($pkg)
     {
         $this->configure();
-        $this->uninstallOldPage();
-        $this->dropOldTable();
         $this->installPages($pkg);
         $this->installFileAttribute($pkg);
         $this->installJob($pkg);
@@ -49,9 +54,9 @@ class Installer implements ApplicationAwareInterface
     private function installPages($pkg)
     {
         $pages = [
-            '/dashboard/files/image_optimizer' => t('Image Optimizer'),
-            '/dashboard/files/image_optimizer/search' => t('Optimized Images'),
-            '/dashboard/files/image_optimizer/settings' => t('Settings'),
+            '/dashboard/files/image_optimizer' => 'Image Optimizer',
+            '/dashboard/files/image_optimizer/search' => 'Optimized Images',
+            '/dashboard/files/image_optimizer/settings' => 'Settings',
         ];
 
         foreach ($pages as $path => $name) {
@@ -66,15 +71,6 @@ class Installer implements ApplicationAwareInterface
                     'cName' => $name
                 ]);
             }
-        }
-    }
-
-    private function uninstallOldPage()
-    {
-        /** @var Page $page */
-        $page = Page::getByPath('/dashboard/system/files/image_optimizer');
-        if ($page && !$page->isError()) {
-            $page->delete();
         }
     }
 
@@ -112,28 +108,25 @@ class Installer implements ApplicationAwareInterface
 
     private function configure()
     {
-        if ($this->config->get('image_optimizer.batch_size') !== null) {
+        if ($this->config->get('image_optimizer::settings.batch_size') !== null) {
             // The add-on has been installed before
             // we will not overwrite existing config settings
             return;
         }
 
-        $this->config->save('image_optimizer.enable_log', false);
-        $this->config->save('image_optimizer.include_filemanager_images', true);
-        $this->config->save('image_optimizer.include_thumbnail_images', true);
-        $this->config->save('image_optimizer.include_cached_images', true);
-        $this->config->save('image_optimizer.batch_size', 5);
+        $this->config->save('image_optimizer::settings.enable_log', false);
+        $this->config->save('image_optimizer::settings.include_filemanager_images', true);
+        $this->config->save('image_optimizer::settings.include_thumbnail_images', true);
+        $this->config->save('image_optimizer::settings.include_cached_images', true);
+        $this->config->save('image_optimizer::settings.batch_size', 5);
+
+        // New installations don't have to re-run migrations.
+        $this->config->save('image_optimizer::settings.last_migration', $this->iterator->getLastMigration());
     }
 
     private function refreshEntities()
     {
         $manager = new DatabaseStructureManager($this->entityManager);
         $manager->refreshEntities();
-    }
-
-    private function dropOldTable()
-    {
-        $db = $this->app->make('database')->connection();
-        $db->executeQuery("DROP TABLE IF EXISTS ImageOptimizerProcessedCacheFiles");
     }
 }

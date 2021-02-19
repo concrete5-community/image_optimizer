@@ -53,7 +53,7 @@ class Review
      */
     private function isDismissed()
     {
-        return (bool) $this->config->get('image_optimizer.foundation.review.is_dismissed', false);
+        return (bool) $this->config->get('image_optimizer::settings.foundation.review.is_dismissed', false);
     }
 
     /**

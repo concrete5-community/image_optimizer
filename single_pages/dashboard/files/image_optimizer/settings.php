@@ -5,9 +5,9 @@ defined('C5_EXECUTE') or die('Access Denied.');
 use Concrete\Core\Support\Facade\Url;
 
 /** @var \Concrete\Core\Form\Service\Form $form */
-/** @var int $numberOfOptimizationsThisMonth */
 /** @var int $maxImageSize */
-/** @var int|null $tinyPngNumberOfCompressions */
+/** @var int|null $tinyPngMaxOptimizationsPerMonth */
+/** @var int $tinyPngNumberOfCompressions */
 ?>
 
 <div class="ccm-dashboard-header-buttons btn-group">
@@ -29,7 +29,7 @@ use Concrete\Core\Support\Facade\Url;
 
             <div class="form-group">
                 <label class="control-label launch-tooltip"
-                        title="<?php echo t("These are the files the user once uploaded to the File Manager."); ?>"
+                        title="<?php echo t('These are the files the user once uploaded to the File Manager.'); ?>"
                 >
                     <?php
                     /** @var bool $includeFilemanagerImages*/
@@ -52,7 +52,7 @@ use Concrete\Core\Support\Facade\Url;
                 <small class="text-muted">
                     <?php
                     /** @var string $thumbnailImageDirectory **/
-                    echo $thumbnailImageDirectory;
+                    echo t(/*i18n: %s is a directory */'E.g. from %s', $thumbnailImageDirectory);
                     ?>
                 </small>
             </div>
@@ -70,7 +70,7 @@ use Concrete\Core\Support\Facade\Url;
                 <small class="text-muted">
                     <?php
                     /** @var string $cacheDirectory **/
-                    echo $cacheDirectory;
+                    echo t(/*i18n: %s is a directory */'E.g. from %s', $cacheDirectory);
                     ?>
                 </small>
             </div>
@@ -106,30 +106,6 @@ use Concrete\Core\Support\Facade\Url;
                     'min' => 1,
                     'style' => 'max-width: 350px',
                 ]);
-                ?>
-            </div>
-
-            <div class="form-group">
-                <label class="control-label launch-tooltip"
-                       title="<?php echo t("This is interesting if you use TinyPNG. %d optimizations per month are for free!", 500) ?>"
-                       for="maxOptimizationsPerMonth"
-                >
-                    <?php
-                    echo $form->label('maxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
-                    ?>
-                </label>
-
-                <?php
-                /** @var int|null $maxOptimizationsPerMonth */
-                echo $form->number('maxOptimizationsPerMonth', $maxOptimizationsPerMonth, [
-                    'placeholder' => t('Leave empty to not set a maximum'),
-                    'min' => 0,
-                    'style'=> 'max-width: 350px',
-                ]);
-
-                if ($numberOfOptimizationsThisMonth) {
-                    echo '<small style="color: #777; font-style: italic; margin-top: 3px;">' . t('Optimizations performed this month: %s.', $numberOfOptimizationsThisMonth) . '</small>';
-                }
                 ?>
             </div>
 
@@ -175,6 +151,33 @@ use Concrete\Core\Support\Facade\Url;
                     echo t('Enable TinyPNG');
                     ?>
                 </label>
+            </div>
+
+            <div class="form-group">
+                <?php
+                /** @var bool $tinyPngApiKey */
+                echo $form->label('tinyPngApiKey', t('TinyPNG API key'));
+                echo $form->text('tinyPngApiKey', $tinyPngApiKey);
+                ?>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0">
+                <label class="control-label launch-tooltip"
+                   title="<?php echo t('Per month, you can perform %d optimizations for free!', 500) ?>"
+                   for="tinyPngMaxOptimizationsPerMonth"
+                >
+                    <?php
+                    echo $form->label('tinyPngMaxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
+                    ?>
+                </label>
+
+                <?php
+                echo $form->number('tinyPngMaxOptimizationsPerMonth', $tinyPngMaxOptimizationsPerMonth, [
+                    'placeholder' => t('Leave empty to not set a maximum'),
+                    'min' => 0,
+                    'style'=> 'max-width: 350px',
+                ]);
+                ?>
 
                 <?php
                 if ($tinyPngNumberOfCompressions !== null) {
@@ -184,14 +187,6 @@ use Concrete\Core\Support\Facade\Url;
 
                     echo '</small>';
                 }
-                ?>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0">
-                <?php
-                /** @var bool $tinyPngApiKey */
-                echo $form->label('tinyPngApiKey', t('TinyPNG API key'));
-                echo $form->text('tinyPngApiKey', $tinyPngApiKey);
                 ?>
             </div>
         </fieldset>

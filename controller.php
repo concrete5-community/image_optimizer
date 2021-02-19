@@ -3,6 +3,7 @@
 namespace Concrete\Package\ImageOptimizer;
 
 use A3020\ImageOptimizer\Installer\Installer;
+use A3020\ImageOptimizer\Installer\Updater;
 use A3020\ImageOptimizer\Provider\ServiceProvider;
 use Concrete\Core\Package\Package;
 use Concrete\Core\Support\Facade\Package as PackageFacade;
@@ -11,7 +12,7 @@ final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
     protected $appVersionRequired = '8.3.1';
-    protected $pkgVersion = '3.1.0';
+    protected $pkgVersion = '3.2.2';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];
@@ -37,16 +38,19 @@ final class Controller extends Package
     {
         $pkg = parent::install();
 
+        /** @var Installer $installer */
         $installer = $this->app->make(Installer::class);
         $installer->install($pkg);
     }
 
     public function upgrade()
     {
-        $pkg = PackageFacade::getByHandle($this->pkgHandle);
+        /** @var \Concrete\Core\Package\Package $pkg */
+        $pkg = PackageFacade::getClass($this->pkgHandle);
 
-        $installer = $this->app->make(Installer::class);
-        $installer->install($pkg);
+        /** @var Updater $installer */
+        $installer = $this->app->make(Updater::class);
+        $installer->update($pkg);
     }
 
     public function uninstall()
@@ -55,6 +59,5 @@ final class Controller extends Package
 
         $db = $this->app->make('database')->connection();
         $db->executeQuery("DROP TABLE IF EXISTS ImageOptimizerProcessedFiles");
-        $db->executeQuery("DROP TABLE IF EXISTS ImageOptimizerProcessedCacheFiles");
     }
 }

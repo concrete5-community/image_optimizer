@@ -1,13 +1,13 @@
 <?php
 
-namespace A3020\ImageOptimizer\Controller;
+namespace A3020\ImageOptimizer\Ajax;
 
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Page\Page;
 
-class AjaxController extends \Concrete\Core\Controller\Controller implements ApplicationAwareInterface
+class BaseController extends \Concrete\Core\Controller\Controller implements ApplicationAwareInterface
 {
     use ApplicationAwareTrait;
 

@@ -3,6 +3,8 @@
 namespace A3020\ImageOptimizer\Finder;
 
 use Concrete\Core\Config\Repository\Repository;
+use Concrete\Core\File\StorageLocation\Configuration\LocalConfiguration;
+use Concrete\Core\File\StorageLocation\StorageLocationFactory;
 
 class Finder
 {
@@ -12,23 +14,57 @@ class Finder
     private $config;
 
     /**
-     * Finder constructor.
-     * @param Repository $config
+     * @var StorageLocationFactory
      */
-    public function __construct(Repository $config)
+    private $storageLocationFactory;
+
+    /**
+     * @param Repository $config
+     * @param StorageLocationFactory $storageLocationFactory
+     */
+    public function __construct(Repository $config, StorageLocationFactory $storageLocationFactory)
     {
         $this->config = $config;
+        $this->storageLocationFactory = $storageLocationFactory;
     }
 
-    public function cacheImages()
+    /**
+     * Returns a list of relative paths in which cache images are stored.
+     *
+     * @return array
+     */
+    public function getLocations()
     {
-        $dir = $this->config->get('concrete.cache.directory');
-        if (!is_dir($dir)) {
-            return new \EmptyIterator();
+        $locations = [];
+        foreach ($this->storageLocationFactory->fetchList() as $storage) {
+            /** @var LocalConfiguration $configurationObject */
+            $configurationObject = $storage->getConfigurationObject();
+
+            // External file storages are not supported, because we need
+            // absolute paths for our local server based optimizers.
+            if (!$configurationObject instanceof LocalConfiguration) {
+                continue;
+            }
+
+            $locations[] = $configurationObject->getWebRootRelativePath();
         }
 
+        return $locations;
+    }
+
+    /**
+     * @param string $path Relative path from web root.
+     *
+     * @return \EmptyIterator|\Symfony\Component\Finder\Finder|\Symfony\Component\Finder\SplFileInfo[]
+     */
+    public function cacheImagesIn($path)
+    {
         $finder = new \Symfony\Component\Finder\Finder();
 
-        return $finder->files()->name('/\.(?:jpe?g|png|gif)$/')->in($dir);
+        // Otherwise it won't find anything e.g. in Composer based install
+        // where images are stored in /public + /application/files
+        $absolutePath = DIR_BASE . $path;
+
+        return $finder->files()->name('/\.(?:jpe?g|png|gif)$/')->in([$absolutePath]);
     }
 }

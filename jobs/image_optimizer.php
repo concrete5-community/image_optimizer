@@ -2,6 +2,7 @@
 
 namespace Concrete\Package\ImageOptimizer\Job;
 
+use A3020\ImageOptimizer\Exception\MonthlyLimitReached;
 use A3020\ImageOptimizer\Provider\JobServiceProvider;
 use A3020\ImageOptimizer\Queue\Create;
 use A3020\ImageOptimizer\Queue\Finish;
@@ -51,7 +52,7 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
         $this->appInstance = Application::getFacadeApplication();
 
         $config = $this->appInstance->make(Repository::class);
-        $this->jQueueBatchSize = (int) $config->get('image_optimizer.batch_size', 5);
+        $this->jQueueBatchSize = (int) $config->get('image_optimizer::settings.batch_size', 5);
 
         $provider = $this->appInstance->make(JobServiceProvider::class);
         $provider->register();
@@ -68,6 +69,8 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
      * Start the job by creating a queue.
      *
      * @param \ZendQueue\Queue $q
+     *
+     * @throws \Doctrine\DBAL\DBALException
      */
     public function start(\ZendQueue\Queue $q)
     {
@@ -75,16 +78,21 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
 
         /** @var Create $createQueue */
         $createQueue = $this->appInstance->make(Create::class);
-        $queue = $createQueue->create($q);
 
-        if ($this->hasConsole()) {
-            $this->progressBar = new ProgressBar($output, $queue->count());
-            $this->progressBar->display();
-        }
+        try {
+            $queue = $createQueue->create($q);
+
+            if ($this->hasConsole()) {
+                $this->progressBar = new ProgressBar($output, $queue->count());
+                $this->progressBar->display();
+            }
+        } catch (MonthlyLimitReached $e) {}
     }
 
     /**
      * Process a QueueMessage.
+     *
+     * @throws MonthlyLimitReached
      *
      * @param \ZendQueue\Message $msg
      */
@@ -115,12 +123,18 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
      *
      * @param \ZendQueue\Queue $q
      *
-     * @return mixed
+     * @throws \Exception
+     *
+     * @return string
      */
     public function finish(\ZendQueue\Queue $q)
     {
         /** @var Finish $queue */
         $queue = $this->appInstance->make(Finish::class);
+
+        if ($queue->monthlyLimitReached()) {
+            return t('Stopped because the monthly limit is reached.');
+        }
 
         if (!$this->hasConsole()) {
             return $queue->finish($q);

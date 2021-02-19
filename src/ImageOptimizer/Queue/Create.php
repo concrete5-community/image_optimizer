@@ -3,6 +3,7 @@
 namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\CacheImageList;
+use A3020\ImageOptimizer\Exception\MonthlyLimitReached;
 use A3020\ImageOptimizer\FileList;
 use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\ThumbnailFileList;
@@ -34,35 +35,34 @@ class Create implements ApplicationAwareInterface
     /**
      * @param ZendQueue $queue
      *
+     * @throws \Doctrine\DBAL\DBALException
+     * @throws MonthlyLimitReached
+     *
      * @return ZendQueue
      */
     public function create(ZendQueue $queue)
     {
         if ($this->monthlyLimit->reached()) {
-            return $queue;
+            throw new MonthlyLimitReached('Monthly limit reached.');
         }
 
-        if ($this->config->get('image_optimizer.include_filemanager_images')) {
+        if ($this->config->get('image_optimizer::settings.include_filemanager_images')) {
             /** @var FileList $list */
             $list = $this->app->make(FileList::class);
             foreach ($list->get() as $row) {
-                $queue->send(json_encode([
-                    'fID' => $row['fID'],
-                ]));
+                $queue->send(json_encode($row));
             }
         }
 
-        if ($this->config->get('image_optimizer.include_thumbnail_images', true)) {
+        if ($this->config->get('image_optimizer::settings.include_thumbnail_images', true)) {
             /** @var ThumbnailFileList $list */
             $list = $this->app->make(ThumbnailFileList::class);
             foreach ($list->get() as $row) {
-                $queue->send(json_encode([
-                    'path' => $row['path'],
-                ]));
+                $queue->send(json_encode($row));
             }
         }
 
-        if ($this->config->get('image_optimizer.include_cached_images')) {
+        if ($this->config->get('image_optimizer::settings.include_cached_images')) {
             /** @var CacheImageList $list */
             $list = $this->app->make(CacheImageList::class);
             foreach ($list->get() as $path) {

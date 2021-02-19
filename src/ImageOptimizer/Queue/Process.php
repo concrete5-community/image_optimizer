@@ -3,47 +3,40 @@
 namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
+use A3020\ImageOptimizer\Exception\MonthlyLimitReached;
+use A3020\ImageOptimizer\Handler\HandlerInterface;
 use A3020\ImageOptimizer\MonthlyLimit;
-use A3020\ImageOptimizer\OptimizerChain;
-use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
-use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
-use Concrete\Core\File\File;
 use Concrete\Core\Logging\Logger;
-use DateTimeImmutable;
-use Doctrine\ORM\EntityManager;
 use Exception;
-use League\Flysystem\Cached\Storage\Psr6Cache;
 use ZendQueue\Message as ZendQueueMessage;
 
 class Process implements ApplicationAwareInterface
 {
     use ApplicationAwareTrait;
 
-    /** @var \A3020\ImageOptimizer\OptimizerChain */
-    protected $optimizerChain;
-
-    /** @var Repository */
-    private $config;
-
-    /** @var EntityManager */
-    private $entityManager;
-
-    /** @var MonthlyLimit */
+    /**
+     * @var MonthlyLimit
+     */
     private $monthlyLimit;
 
-    /** @var Logger */
+    /**
+     * @var Logger
+     */
     private $logger;
 
-    public function __construct(Repository $config, EntityManager $entityManager, OptimizerChain $optimizerChain, MonthlyLimit $monthlyLimit, Logger $logger)
+    /**
+     * @var Repository
+     */
+    private $config;
+
+    public function __construct(MonthlyLimit $monthlyLimit, Logger $logger, Repository $config)
     {
-        $this->config = $config;
-        $this->entityManager = $entityManager;
-        $this->optimizerChain = $optimizerChain;
         $this->monthlyLimit = $monthlyLimit;
         $this->logger = $logger;
+        $this->config = $config;
     }
 
     /**
@@ -53,8 +46,6 @@ class Process implements ApplicationAwareInterface
      */
     public function process(ZendQueueMessage $msg)
     {
-        $processedFile = null;
-
         if ($this->monthlyLimit->reached()) {
             return null;
         }
@@ -62,193 +53,40 @@ class Process implements ApplicationAwareInterface
         try {
             $body = json_decode($msg->body, true);
 
-            if (isset($body['fID'])) {
-                $processedFile = $this->processFile(File::getByID($body['fID']));
+            $handler = $this->makeHandler($body);
+
+            if ((bool)$this->config->get('image_optimizer::settings.enable_log')) {
+                $handler->useLogger($this->logger);
             }
 
-            if (isset($body['path'])) {
-                $processedFile = $this->processStaticFile($body['path']);
-            }
+            return $handler->process($body);
         } catch (Exception $e) {
             $this->logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
 
             return null;
         }
-
-        return $processedFile;
     }
 
     /**
-     * Optimizes files from File Manager.
+     * @param array $body
      *
-     * @param \Concrete\Core\Entity\File\File $file
-     *
-     * @return ProcessedFile
+     * @return HandlerInterface
      */
-    private function processFile($file)
+    private function makeHandler($body)
     {
-        // In theory it's possible that the queued file has been deleted
-        if (!is_object($file)) {
-            return null;
+        // Thumbnail
+        if (isset($body['fileId']) && isset($body['fileVersionId']) && isset($body['thumbnailTypeHandle'])) {
+            return $this->app->make(\A3020\ImageOptimizer\Handler\Thumbnail::class);
         }
 
-        // In theory it's possible that this version has been deleted in the meanwhile
-        $fileVersion = $file->getVersion();
-        if (!is_object($fileVersion) || $this->isExcluded($fileVersion)) {
-            return null;
+        // Original / normal file
+        if (isset($body['fileId'])) {
+           return $this->app->make(\A3020\ImageOptimizer\Handler\Original::class);
         }
 
-        /** @var \A3020\ImageOptimizer\Repository\ProcessedFilesRepository $repo */
-        $repo = $this->app->make(ProcessedFilesRepository::class);
-        $processedFile = $repo->findOrCreateOriginal($file->getFileID(), $fileVersion->getFileVersionID());
-
-        if ($processedFile->isProcessed()) {
-            return null;
+        // Cache file
+        if (isset($body['path'])) {
+            return $this->app->make(\A3020\ImageOptimizer\Handler\CacheFile::class);
         }
-
-        $relativePath = $fileVersion->getRelativePath();
-        $relativePath = str_replace(DIR_REL, '', $relativePath);
-        $pathToImage = DIR_BASE.$relativePath;
-
-        $shouldSkip = $this->getSkipReason($pathToImage);
-        $processedFile->setSkipReason($shouldSkip);
-
-        $fileSizeBeforeOptimization = $fileVersion->getFullSize();
-        $processedFile->setFileSizeOriginal($fileSizeBeforeOptimization);
-
-        // Only optimize if the file is still on the file system
-        if (file_exists($pathToImage) && $shouldSkip === null) {
-            $this->optimizerChain->optimize($pathToImage);
-
-            $this->clearFlysystemCache($file);
-
-            $fileVersion->refreshAttributes(true);
-        }
-
-        $fileSizeDiff = $fileSizeBeforeOptimization - $fileVersion->getFullSize();
-        $processedFile->setFileSizeReduction($fileSizeDiff);
-
-        $this->save($processedFile);
-
-        return $processedFile;
-    }
-
-    /**
-     * Optimize images in /application/files/* directories.
-     *
-     * @param string $path
-     *
-     * @return ProcessedFile|null
-     */
-    private function processStaticFile($path)
-    {
-        /** @var \A3020\ImageOptimizer\Repository\ProcessedFilesRepository $repo */
-        $repo = $this->app->make(ProcessedFilesRepository::class);
-        $processedFile = $repo->findOrCreateDerived($path);
-
-        if ($processedFile->isProcessed()) {
-            return null;
-        }
-
-        $shouldSkip = $this->getSkipReason($path);
-        $processedFile->setSkipReason($shouldSkip);
-
-        // We stored a relative path in the queue table.
-        // Let's make it absolute now.
-        $path = DIR_FILES_UPLOADED_STANDARD.$path;
-
-        // Only optimize if the file is still on the file system
-        if (file_exists($path) && !$shouldSkip) {
-            $makeTime = filemtime($path);
-            $fileSizeBeforeOptimization = filesize($path);
-            $processedFile->setFileSizeOriginal($fileSizeBeforeOptimization);
-
-            if ($this->getMaxSize() && $fileSizeBeforeOptimization >= $this->getMaxSize()) {
-                // Image is too big, let's skip this one
-                return null;
-            }
-
-            $this->optimizerChain->optimize($path);
-
-            // the md5 hash of the cache files also uses the modification date...
-            touch($path, $makeTime);
-
-            // Results of file size can be cached
-            clearstatcache();
-
-            $fileSizeAfterOptimization = filesize($path);
-
-            $fileSizeDiff = $fileSizeBeforeOptimization - $fileSizeAfterOptimization;
-            $processedFile->setFileSizeReduction($fileSizeDiff);
-        }
-
-        $this->save($processedFile);
-
-        return $processedFile;
-    }
-
-    /**
-     * Clears cache for flysystem, needed to get updated filesize.
-     *
-     * Only applies to c5 v8.2.x or higher.
-     *
-     * @param \Concrete\Core\Entity\File\File $file
-     */
-    private function clearFlysystemCache($file)
-    {
-        if (!class_exists('\League\Flysystem\Cached\Storage\Psr6Cache')) {
-            return;
-        }
-
-        $fslId = $file->getFileStorageLocationObject()->getID();
-        $pool = $this->app->make(ExpensiveCache::class)->pool;
-        $cache = new Psr6Cache($pool, 'flysystem-id-' . $fslId);
-        $cache->flush();
-    }
-
-    private function save($record)
-    {
-        // We'll mark as processed even if the file can't be found.
-        $record->setProcessedAt(new DateTimeImmutable('now'));
-
-        $this->entityManager->persist($record);
-        $this->entityManager->flush();
-    }
-
-    /**
-     * @return int max size in bytes
-     */
-    private function getMaxSize()
-    {
-        return (int) $this->config->get('image_optimizer.max_image_size') * 1024;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return int|null
-     */
-    private function getSkipReason($path)
-    {
-        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        if ((bool) $this->config->get('image_optimizer.tiny_png.enabled') && $extension === 'png') {
-            return ProcessedFile::SKIP_REASON_PNG_8_BUG;
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns true if the file is excluded from image optimization
-     *
-     * @param \Concrete\Core\Entity\File\Version $fileVersion
-     *
-     * @return bool
-     */
-    private function isExcluded($fileVersion)
-    {
-        $exclude = $fileVersion->getAttribute('exclude_from_image_optimizer');
-
-        return $exclude === true;
     }
 }

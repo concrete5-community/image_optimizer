@@ -2,7 +2,6 @@
 
 namespace A3020\ImageOptimizer\Entity;
 
-use Concrete\Core\Entity\File\Version;
 use Concrete\Core\File\File;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -20,6 +19,13 @@ class ProcessedFile
      * can't handle PNG-8 properly as it can loose transparency.
      */
     const SKIP_REASON_PNG_8_BUG = 1;
+    const SKIP_REASON_FILE_TOO_BIG = 2;
+    const SKIP_REASON_FILE_EXCLUDED = 3;
+    const SKIP_REASON_EMPTY_FILE = 4;
+
+    const TYPE_ORIGINAL = 'original';
+    const TYPE_THUMBNAIL = 'thumbnail';
+    const TYPE_CACHE_FILE = 'cache_file';
 
     /**
      * @ORM\Id @ORM\Column(type="integer", options={"unsigned":true})
@@ -37,10 +43,20 @@ class ProcessedFile
      */
     protected $fileVersionId;
 
+     /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $thumbnailTypeHandle;
+
     /**
      * @ORM\Column(type="string", nullable=true)
      */
     protected $path;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $type = self::TYPE_ORIGINAL;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -66,6 +82,10 @@ class ProcessedFile
      */
     protected $skipReason;
 
+    protected $makeTimeOriginalFile = null;
+    protected $relativePath = null;
+    protected $absolutePath = null;
+
     /**
      * @return int
      */
@@ -83,6 +103,14 @@ class ProcessedFile
     }
 
     /**
+     * @return \Concrete\Core\Entity\File\File|null
+     */
+    public function getOriginalFile()
+    {
+        return File::getByID($this->getOriginalFileId());
+    }
+
+    /**
      * @param integer $originalFileId
      */
     public function setOriginalFileId($originalFileId)
@@ -91,7 +119,11 @@ class ProcessedFile
     }
 
     /**
-     * @return \DateTimeImmutable
+     * Get date the image was processed
+     *
+     * Can be null in case the image is being processed...
+     *
+     * @return \DateTimeImmutable|null
      */
     public function getProcessedAt()
     {
@@ -104,6 +136,11 @@ class ProcessedFile
     public function setProcessedAt($processedAt)
     {
         $this->processedAt = $processedAt;
+    }
+
+    public function touch()
+    {
+        $this->processedAt = new \DateTimeImmutable();
     }
 
     /**
@@ -175,33 +212,39 @@ class ProcessedFile
      */
     public function getPath()
     {
-        return $this->path;
+        // On Windows there may be backslashes in the path...
+        return str_replace('\\', '/', $this->path);
     }
 
     /**
      * Returns computer path of the file
      *
-     * If static file, return the path
-     * If c5 file, get the version, then return its path
+     * Used on the Optimized Images page and in the CLI.
      *
      * @return string|null
      */
     public function getComputedPath()
     {
-        if ($this->path) {
+        if ($this->getType() === ProcessedFile::TYPE_CACHE_FILE) {
             return $this->path;
         }
 
-        /** @var \Concrete\Core\Entity\File\File $file */
-        $file = File::getByID($this->getOriginalFileId());
+        $file = $this->getOriginalFile();
         if (!is_object($file)) {
             // File may have been deleted
             return null;
         }
 
-        $fv = $file->getVersion($this->getFileVersionId());
+        $version = $file->getVersion($this->getFileVersionId());
+        if (!$version) {
+            return null;
+        }
 
-        return $fv ? $fv->getRelativePath() : null;
+        if ($this->isOriginal()) {
+            return $version->getRelativePath();
+        }
+
+        return $version->getThumbnailURL($this->getThumbnailTypeHandle());
     }
 
     /**
@@ -226,5 +269,84 @@ class ProcessedFile
     public function setSkipReason($skipReason)
     {
         $this->skipReason = $skipReason;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getThumbnailTypeHandle()
+    {
+        return $this->thumbnailTypeHandle;
+    }
+
+    /**
+     * @param string $thumbnailTypeHandle
+     */
+    public function setThumbnailTypeHandle($thumbnailTypeHandle)
+    {
+        $this->thumbnailTypeHandle = $thumbnailTypeHandle;
+    }
+
+    public function isOriginal()
+    {
+        return $this->getType() === self::TYPE_ORIGINAL;
+    }
+
+    public function setMakeTimeOriginalFile($time)
+    {
+        $this->makeTimeOriginalFile = $time;
+    }
+
+    /**
+     * UNIX timestamp of when the original file was created on the file system.
+     *
+     * @return int|null
+     */
+    public function getMakeTimeOriginalFile()
+    {
+        return $this->makeTimeOriginalFile;
+    }
+
+    public function setAbsolutePath($path)
+    {
+        $this->absolutePath = $path;
+    }
+
+    public function getAbsolutePath()
+    {
+        return $this->absolutePath;
+    }
+
+    public function setProperties()
+    {
+        if (!file_exists($this->getAbsolutePath())) {
+            return;
+        }
+
+        $this->setMakeTimeOriginalFile(
+            filemtime($this->getAbsolutePath())
+        );
+
+        if (!$this->getFileSizeOriginal()) {
+            $this->setFileSizeOriginal(
+                filesize($this->getAbsolutePath())
+            );
+        }
+    }
+
+    /**
+     * @param string $type
+     */
+    public function setType($type)
+    {
+        $this->type = $type;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType()
+    {
+        return $this->type;
     }
 }

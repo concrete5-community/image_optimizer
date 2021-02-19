@@ -76,7 +76,7 @@ class OptimizerChain
     }
 
     /**
-     * @param string $pathToImage
+     * @param string $pathToImage Absolute path to the image.
      * @param string $pathToOutput
      */
     public function optimize($pathToImage, $pathToOutput = null)

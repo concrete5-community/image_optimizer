@@ -1,3 +1,29 @@
+3.2.2
+- Prevent having to reprocess thumbnails. Run the "Fill thumbnail database table" automated job first, to get the best results.
+- Skip files that are empty or that don't exist anymore.
+- Show the various skip reasons in the (i) icon.
+- Fix bug that certain thumbnails were not optimized.
+- Exclude files that are too big to process (configurable).
+- Fix redundant code to determine the computed path.
+- Store the 'type' of a processed file in the database.
+- Refactor the handlers, to prevent duplicate code.
+- Improve logging during processing.
+
+3.2.1
+- Fix SplFileInfo::isDot error in pkg upgrade.
+- Make number of optimizations per month TinyPNG specific.
+- Show if the limit is reached on the Automated Jobs page.
+- Fix bug with legacy cache thumbnails.
+
+3.2.0
+- Add Date column to Optimized Images page.
+- Add support for multiple local file storage locations.
+- Store the thumbnailTypeHandle in the database.
+- Use new package::config notation (and migrate old usage).
+- Do not refresh thumbnails after optimizing an original file.
+- Automatically remove entries in Optimized Images when a file is removed.
+- Various code improvements (although still room for improvement...)
+
 3.1.0
 - Show number of TinyPNG compressions in the current month if the service is enabled and an API key is provided.
 

@@ -2,7 +2,7 @@
 
 namespace A3020\ImageOptimizer;
 
-use Concrete\Core\Attribute\Key\FileKey;
+use A3020\ImageOptimizer\Entity\ProcessedFile;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Database\Connection\Connection;
 
@@ -38,17 +38,20 @@ class FileList
     public function get()
     {
         return $this->connection->executeQuery(
-        'SELECT fv.fID FROM (
+        'SELECT fv.fID as fileId, fv.fvID, pf.fileVersionId FROM (
                 SELECT MAX(fvID) as fvID, fID FROM FileVersions fv
                 WHERE fv.fvType = ? AND fv.fvSize < ?
                 GROUP BY fID
               ) AS fv
-              LEFT JOIN ImageOptimizerProcessedFiles pf ON pf.originalFileId = fv.fID
+              LEFT JOIN ImageOptimizerProcessedFiles pf ON pf.originalFileId = fv.fID AND pf.`type`= ?
               WHERE pf.fileVersionId IS NULL
-              OR pf.fileVersionId < fv.fvID
+              OR (
+                SELECT MAX(fileVersionId) FROM ImageOptimizerProcessedFiles WHERE originalFileID = fv.fID
+              ) < fv.fvID
         ', [
             \Concrete\Core\File\Type\Type::T_IMAGE,
             $this->getMaxSize(),
+            ProcessedFile::TYPE_ORIGINAL,
         ])->fetchAll();
     }
 
@@ -62,7 +65,7 @@ class FileList
     private function getMaxSize()
     {
         // This is in KB
-        $maxSize = (int) $this->config->get('image_optimizer.max_image_size');
+        $maxSize = (int) $this->config->get('image_optimizer::settings.max_image_size');
         $maxSize = $maxSize ? $maxSize : 999999;
 
         return $maxSize * 1024;

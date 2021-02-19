@@ -6,6 +6,7 @@ use A3020\ImageOptimizer\Statistics\Month;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
+use Exception;
 
 class MonthlyLimit implements ApplicationAwareInterface
 {
@@ -28,23 +29,35 @@ class MonthlyLimit implements ApplicationAwareInterface
      */
     public function reached()
     {
-        $max = (int) $this->config->get('image_optimizer.max_optimizations_per_month');
+        $max = (int) $this->config->get('image_optimizer::settings.tiny_png.max_optimizations_per_month');
 
         if (empty($max)) {
             return false;
         }
 
-        if ($this->getNumberOfOptimizationsThisMonth() < $max) {
-            return false;
+        if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled')
+            && $this->config->get('image_optimizer::settings.tiny_png.api_key')
+        ) {
+            $tinyPngCount = $this->getTinyPngNumberOfCompressions();
+
+            return $tinyPngCount >= $max;
         }
 
-        return true;
+        return false;
     }
 
-    private function getNumberOfOptimizationsThisMonth()
+    /**
+     * @return int|null
+     */
+    public function getTinyPngNumberOfCompressions()
     {
-        $statistics = $this->app->make(Month::class);
+        try {
+            \Tinify\setKey($this->config->get('image_optimizer::settings.tiny_png.api_key'));
+            \Tinify\validate();
 
-        return $statistics->total();
+            return (int) \Tinify\compressionCount();
+        } catch (Exception $e) {}
+
+        return null;
     }
 }

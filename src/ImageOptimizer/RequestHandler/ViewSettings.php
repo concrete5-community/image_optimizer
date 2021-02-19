@@ -21,20 +21,14 @@ class ViewSettings
     private $connection;
 
     /**
-     * @var Month
-     */
-    private $monthStatistics;
-
-    /**
      * @var ComposerLoader
      */
     private $composerLoader;
 
-    public function __construct(Repository $config, Connection $connection, Month $monthStatistics, ComposerLoader $composerLoader)
+    public function __construct(Repository $config, Connection $connection, ComposerLoader $composerLoader)
     {
         $this->config = $config;
         $this->connection = $connection;
-        $this->monthStatistics = $monthStatistics;
         $this->composerLoader = $composerLoader;
     }
 
@@ -48,25 +42,20 @@ class ViewSettings
         ');
     }
 
-    public function getNumberOfOptimizationsThisMonth()
-    {
-        return $this->monthStatistics->total();
-    }
-
     /**
      * @return int|null
      */
     public function getTinyPngNumberOfCompressions()
     {
-        if ((bool) $this->config->get('image_optimizer.tiny_png.enabled')
-            && $this->config->get('image_optimizer.tiny_png.api_key')
+        if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled')
+            && $this->config->get('image_optimizer::settings.tiny_png.api_key')
         ) {
             try {
                 // The composer dependencies need to be loaded
                 // in order to call the TinyPNG API.
                 $this->composerLoader->load();
 
-                \Tinify\setKey($this->config->get('image_optimizer.tiny_png.api_key'));
+                \Tinify\setKey($this->config->get('image_optimizer::settings.tiny_png.api_key'));
                 \Tinify\validate();
 
                 return \Tinify\compressionCount();

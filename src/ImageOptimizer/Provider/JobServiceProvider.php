@@ -3,6 +3,7 @@
 namespace A3020\ImageOptimizer\Provider;
 
 use A3020\ImageOptimizer\ComposerLoader;
+use A3020\ImageOptimizer\Handler\BaseHandler;
 use A3020\ImageOptimizer\OptimizerChain;
 use A3020\ImageOptimizer\Optimizers\Gifsicle;
 use A3020\ImageOptimizer\Optimizers\Jpegoptim;
@@ -13,7 +14,6 @@ use A3020\ImageOptimizer\Optimizers\TinyPng;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
-use Concrete\Core\Package\PackageService;
 
 class JobServiceProvider implements ApplicationAwareInterface
 {
@@ -42,7 +42,7 @@ class JobServiceProvider implements ApplicationAwareInterface
         $this->app->bind(OptimizerChain::class, function($app) {
             $chain = (new OptimizerChain());
 
-            if ((bool) $this->config->get('image_optimizer.enable_log')) {
+            if ((bool) $this->config->get('image_optimizer::settings.enable_log')) {
                 $chain->useLogger($this->app->make('log'));
             }
 
@@ -69,9 +69,9 @@ class JobServiceProvider implements ApplicationAwareInterface
                     ]));
             }
 
-            if ((bool) $this->config->get('image_optimizer.tiny_png.enabled') && !empty($this->config->get('image_optimizer.tiny_png.api_key'))) {
+            if ((bool) $this->config->get('image_optimizer::settings.tiny_png.enabled') && !empty($this->config->get('image_optimizer::settings.tiny_png.api_key'))) {
                 $chain->addOptimizer(new TinyPng([
-                    'api_key' => $this->config->get('image_optimizer.tiny_png.api_key'),
+                    'api_key' => $this->config->get('image_optimizer::settings.tiny_png.api_key'),
                 ]));
             }
 

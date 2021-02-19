@@ -2,12 +2,12 @@
 
 namespace A3020\ImageOptimizer\Ajax;
 
-use A3020\ImageOptimizer\Controller\AjaxController;
+use A3020\ImageOptimizer\Entity\ProcessedFile;
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\File\File;
 use Concrete\Core\Http\ResponseFactory;
 
-class Files extends AjaxController
+class Files extends BaseController
 {
     /** @var \Concrete\Core\Utility\Service\Number */
     protected $numberHelper;
@@ -21,6 +21,9 @@ class Files extends AjaxController
         ]);
     }
 
+    /**
+     * @return array
+     */
     private function getFiles()
     {
         $records = [];
@@ -29,21 +32,17 @@ class Files extends AjaxController
         $repository = $this->app->make(ProcessedFilesRepository::class);
         foreach ($repository->findAll() as $processedFile) {
             $record = [];
-            if ($processedFile->getOriginalFileId()) {
-                $file = File::getByID($processedFile->getOriginalFileId());
-                if (!$file || $file->isError()) {
-                    continue;
-                }
-
-                $record['path'] = $file->getVersion()->getRelativePath();
-                $record['is_original'] = true;
-            } else {
-                $record['path'] = REL_DIR_FILES_UPLOADED_STANDARD.$processedFile->getPath();
-                $record['is_original'] = false;
-            }
 
             $sizeKb = $this->size($processedFile->getFileSizeReduction());
 
+            $path = $processedFile->getComputedPath();
+            if (!$path) {
+                $this->deleteOldRecord($processedFile);
+                continue;
+            }
+
+            $record['path'] = $path;
+            $record['is_original'] = $processedFile->isOriginal();
             $record['id'] = $processedFile->getId();
             $record['size_original'] = $this->size($processedFile->getFileSizeOriginal());
             $record['size_original_human'] = $sizeKb > 1024 ? $this->numberHelper->formatSize($processedFile->getFileSizeOriginal()) : '';
@@ -52,6 +51,7 @@ class Files extends AjaxController
             $record['size_reduction'] = $this->size($processedFile->getFileSizeReduction());
             $record['size_reduction_human'] = $sizeKb > 1024 ? $this->numberHelper->formatSize($processedFile->getFileSizeReduction()) : '';
             $record['skip_reason'] = $processedFile->getSkipReason();
+            $record['date'] = $processedFile->getProcessedAt() ? $processedFile->getProcessedAt()->format('Y-m-d H:i:s') : '-';
 
             $records[] = $record;
         }
@@ -67,5 +67,21 @@ class Files extends AjaxController
     private function size($size)
     {
         return max(0, round($size / 1024, 2));
+    }
+
+    /**
+     * Remove reference to non-existing file.
+     *
+     * The associated file doesn't seem to exist anymore,
+     * let's also delete the reference in the Image Optimizer table.
+     *
+     * @param ProcessedFile $file
+     */
+    private function deleteOldRecord(ProcessedFile $file)
+    {
+        /** @var ProcessedFilesRepository $repository */
+        $repository = $this->app->make(ProcessedFilesRepository::class);
+
+        $repository->remove($file);
     }
 }

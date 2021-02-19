@@ -13,7 +13,7 @@ $pkgName = t('Image Optimizer');
     ?>
 </label>
 
-<div class="alert alert-danger" id="consent">
+<div class="alert alert-warning" id="consent">
     <i class="fa fa-warning"></i>
     <strong>
     <?php

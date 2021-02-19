@@ -2,12 +2,11 @@
 
 namespace A3020\ImageOptimizer\Ajax;
 
-use A3020\ImageOptimizer\Controller\AjaxController;
 use A3020\ImageOptimizer\Resetter;
 use Concrete\Core\Http\Response;
 use Concrete\Core\Http\ResponseFactory;
 
-class Reset extends AjaxController
+class Reset extends BaseController
 {
     public function view()
     {
@@ -22,10 +21,9 @@ class Reset extends AjaxController
 
         /** @var Resetter $resetter */
         $resetter = $this->app->make(Resetter::class);
-        $resetter->reset($id, $isOriginal);
 
         return $this->app->make(ResponseFactory::class)->json([
-            'success' => true,
+            'success' => $resetter->reset($id),
         ]);
     }
 }

@@ -39,29 +39,16 @@ final class ProcessedFilesRepository
         $record = $this->repository->findOneBy([
             'originalFileId' => $fileId,
             'fileVersionId' => $versionId,
+            'type' => ProcessedFile::TYPE_ORIGINAL,
         ]);
 
         if (!$record) {
-            $record = $this->createOriginal($fileId, $versionId);
-        }
+            $record = new ProcessedFile();
+            $record->setType(ProcessedFile::TYPE_ORIGINAL);
+            $record->setOriginalFileId($fileId);
+            $record->setFileVersionId($versionId);
 
-        return $record;
-    }
-
-    /**
-     * @param string $path
-     *
-     * @return ProcessedFile
-     */
-    public function findOrCreateDerived($path)
-    {
-        /** @var ProcessedFile $record */
-        $record = $this->repository->findOneBy([
-            'path' => $path,
-        ]);
-
-        if (!$record) {
-            $record = $this->createDerived($path);
+            $this->flush($record);
         }
 
         return $record;
@@ -69,18 +56,30 @@ final class ProcessedFilesRepository
 
     /**
      * @param int $fileId
-     * @param int $versionId
+     * @param int $fileVersionId
+     * @param string $thumbnailTypeHandle
      *
      * @return ProcessedFile
      */
-    public function createOriginal($fileId, $versionId)
+    public function findOrCreateThumbnail($fileId, $fileVersionId, $thumbnailTypeHandle)
     {
-        $record = new ProcessedFile();
-        $record->setOriginalFileId($fileId);
-        $record->setFileVersionId($versionId);
+        /** @var ProcessedFile $record */
+        $record = $this->repository->findOneBy([
+            'originalFileId' => $fileId,
+            'fileVersionId' => $fileVersionId,
+            'thumbnailTypeHandle' => $thumbnailTypeHandle,
+            'type' => ProcessedFile::TYPE_THUMBNAIL,
+        ]);
 
-        $this->entityManager->persist($record);
-        $this->entityManager->flush();
+        if (!$record) {
+            $record = new ProcessedFile();
+            $record->setType(ProcessedFile::TYPE_THUMBNAIL);
+            $record->setOriginalFileId($fileId);
+            $record->setFileVersionId($fileVersionId);
+            $record->setThumbnailTypeHandle($thumbnailTypeHandle);
+
+            $this->flush($record);
+        }
 
         return $record;
     }
@@ -90,18 +89,29 @@ final class ProcessedFilesRepository
      *
      * @return ProcessedFile
      */
-    public function createDerived($path)
+    public function findOrCreateCacheFile($path)
     {
-        $record = new ProcessedFile();
-        $record->setPath($path);
+        /** @var ProcessedFile $record */
+        $record = $this->repository->findOneBy([
+            'path' => $path,
+            'type' => ProcessedFile::TYPE_CACHE_FILE,
+        ]);
 
-        $this->entityManager->persist($record);
-        $this->entityManager->flush();
+        if (!$record) {
+            $record = new ProcessedFile();
+            $record->setType(ProcessedFile::TYPE_CACHE_FILE);
+            $record->setPath($path);
+
+            $this->flush($record);
+        }
 
         return $record;
     }
 
-
+    /**
+     * @return float
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function totalFileSize()
     {
         return (float) $this->repository
@@ -109,6 +119,12 @@ final class ProcessedFilesRepository
             ->select('SUM(pf.fileSizeReduction) as fileSize')
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function remove(ProcessedFile $file)
+    {
+        $this->entityManager->remove($file);
+        $this->entityManager->flush();
     }
 
     public function removeOne($id)
@@ -146,5 +162,11 @@ final class ProcessedFilesRepository
         $this->entityManager
             ->getConnection()
             ->executeQuery("TRUNCATE TABLE ImageOptimizerProcessedFiles");
+    }
+
+    public function flush($record)
+    {
+        $this->entityManager->persist($record);
+        $this->entityManager->flush();
     }
 }

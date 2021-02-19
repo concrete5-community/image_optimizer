@@ -1,5 +1,6 @@
 <?php
 
+use A3020\ImageOptimizer\Entity\ProcessedFile;
 use Concrete\Core\Support\Facade\Url;
 
 defined('C5_EXECUTE') or die('Access Denied.');
@@ -68,6 +69,12 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 <?php echo t('Difference'); ?>
                 <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
                    title="<?php echo t('The difference in size after the images have been optimized. The higher, the better.') ?>">
+                </i>
+            </th>
+             <th>
+                <?php echo t('Date'); ?>
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                   title="<?php echo t('The date this image was optimized.') ?>">
                 </i>
             </th>
             <th>
@@ -145,16 +152,36 @@ defined('C5_EXECUTE') or die('Access Denied.');
                         return row.size_reduction;
                     }
                 },
+                 {
+                    data: function(row, type, val) {
+                        return row.date;
+                    }
+                },
                 {
                     data: function(row, type, val) {
                         if (row.skip_reason) {
-                            return '<i class="fa fa-info-circle launch-tooltip text-muted" ' +
-                                'title="<?php echo t("A bug in concrete5 causes issues with PNG-8 images. TinyPNG might return 8-bit PNG images, therefore this file was skipped."); ?>"></i>';
+                            var reason = '';
+                            switch (row.skip_reason) {
+                                case <?php echo ProcessedFile::SKIP_REASON_PNG_8_BUG ?>:
+                                    reason = '<?php echo t("A bug in concrete5 causes issues with PNG-8 images. TinyPNG might return 8-bit PNG images, therefore this file was skipped."); ?>';
+                                    break;
+                                case <?php echo ProcessedFile::SKIP_REASON_FILE_TOO_BIG ?>:
+                                    reason = '<?php echo t("The file was too big to process."); ?>';
+                                    break;
+                                case <?php echo ProcessedFile::SKIP_REASON_FILE_EXCLUDED ?>:
+                                    reason = '<?php echo t("The file was excluded."); ?>';
+                                    break;
+                                case <?php echo ProcessedFile::SKIP_REASON_EMPTY_FILE ?>:
+                                    reason = '<?php echo t("The file was empty or not existing (anymore)."); ?>';
+                                    break;
+                            }
+
+                            return '<i class="fa fa-info-circle launch-tooltip text-muted" title="' + reason + '"></i>';
                         }
 
                         if (row.size_reduction === 0) {
                             return '<i class="fa fa-info-circle launch-tooltip text-muted" ' +
-                                'title="<?php echo t("0KB was optimized. This can happen if you ran the optimizers multiple times, or if no optimizers have been configured."); ?>"></i>';
+                                'title="<?php echo t("0KB was optimized. This can happen if you ran the optimizers multiple times, if no optimizers have been configured, or because the image was already optimized."); ?>"></i>';
                         }
 
                         return '<i class="fa fa-check text-muted"></i>';
@@ -168,7 +195,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
                     }
                 }
             ],
-            order: [[ 4, "desc" ]],
+            order: [[ 5, "desc" ]],
             language: {
                 emptyTable: '<?php echo t('No images have been optimized yet. Please go to Automated Jobs to run the Image Optimizer.') ?>'
             },
@@ -178,9 +205,12 @@ defined('C5_EXECUTE') or die('Access Denied.');
         });
 
         $('#frm-reset-all-files').on('submit', function() {
-            return confirm("<?php echo t("Are you sure you want to reset the status of all files? ".
-                "If so, Image Optimizer will try to optimize the images again. " .
-                "You probably only want to do this if you didn't have any optimizers configured before.") ?>");
+            return confirm("<?php
+                echo t('Are you sure you want to reset the status of all files?') . ' '
+                . t('If so, Image Optimizer will try to optimize the images again.') . ' '
+                . t('All statistics will be lost!') . ' '
+                . t("You probably only want to do this if you didn't have any optimizers configured before.")
+            ?>");
         });
 
         DataTableElement.on('click', '.reset-one', function() {

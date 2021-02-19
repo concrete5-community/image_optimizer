@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer\Queue;
 
+use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
@@ -24,10 +25,16 @@ class Finish implements ApplicationAwareInterface
      */
     private $repository;
 
-    public function __construct(Repository $config, ProcessedFilesRepository $repository)
+    /**
+     * @var MonthlyLimit
+     */
+    private $monthlyLimit;
+
+    public function __construct(Repository $config, ProcessedFilesRepository $repository, MonthlyLimit $monthlyLimit)
     {
         $this->config = $config;
         $this->repository = $repository;
+        $this->monthlyLimit = $monthlyLimit;
     }
 
     public function finish(ZendQueue $q)
@@ -46,5 +53,10 @@ class Finish implements ApplicationAwareInterface
             '</a>',
             $nh->formatSize($totalSavedDiskSpace)
         );
+    }
+
+    public function monthlyLimitReached()
+    {
+        return $this->monthlyLimit->reached();
     }
 }

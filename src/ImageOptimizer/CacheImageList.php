@@ -37,16 +37,24 @@ class CacheImageList
      */
     public function get()
     {
-        $paths = [];
-        foreach ($this->finder->cacheImages() as $file) {
-            $paths[] = '/cache/'.(string) $file->getRelativePathname();
+        $cacheFiles = [];
+        foreach ($this->finder->getLocations() as $storagePath) {
+            $cachePath = $storagePath . '/cache/';
+            foreach ($this->finder->cacheImagesIn($cachePath) as $file) {
+                $path = $cachePath . $file->getRelativePathname();
+
+                $cacheFiles[] = str_replace('\\', '/', $path);
+            }
         }
 
-        $processed = $this->db->fetchAll('SELECT path FROM ImageOptimizerProcessedFiles
-            WHERE path LIKE "/cache/%"
+        $processed = $this->db->fetchAll('
+            SELECT path 
+            FROM ImageOptimizerProcessedFiles
+            WHERE path IS NOT NULL
         ');
-        $processed = !empty($processed) ? array_column($processed, 'path') : [];
-        
-        return array_diff($paths, $processed);
+
+        $cacheFilesProcessed = array_column($processed, 'path');
+
+        return array_diff($cacheFiles, $cacheFilesProcessed);
     }
 }
