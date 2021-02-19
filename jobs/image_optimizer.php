@@ -18,7 +18,6 @@ use Concrete\Core\Support\Facade\Application;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use League\Flysystem\Cached\Storage\Psr6Cache;
-use Symfony\Component\Process\Process;
 use ZendQueue\Message as ZendQueueMessage;
 use ZendQueue\Queue as ZendQueue;
 
@@ -57,16 +56,10 @@ final class ImageOptimizer extends QueueableJob
         $this->config = $this->appInstance->make(Repository::class);
 
         $this->jQueueBatchSize = (int) $this->config->get('image_optimizer.batch_size', 5);
-    }
 
-    /**
-     * @inheritdoc
-     */
-    public function executeBatch($batch, ZendQueue $queue)
-    {
         $this->loadOptimizer();
 
-        parent::executeBatch($batch, $queue);
+        parent::__construct();
     }
 
     /**
@@ -159,11 +152,7 @@ final class ImageOptimizer extends QueueableJob
         if (file_exists($pathToImage)) {
             $this->optimizerChain->optimize($pathToImage);
 
-            // Clear flysystem cache
-            $fslId = $file->getFileStorageLocationObject()->getID();
-            $pool = $this->appInstance->make(ExpensiveCache::class)->pool;
-            $cache = new Psr6Cache($pool, 'flysystem-id-' . $fslId);
-            $cache->flush();
+            $this->clearFlysystemCache($file);
 
             $fileVersion->refreshAttributes(true);
         }
@@ -236,8 +225,7 @@ final class ImageOptimizer extends QueueableJob
     }
 
     /**
-     * Do not put this in the constructor, otherwise it will load each time the
-     * jobs page is opened. Instead, once the queue runs, it will load.
+     * Called in constructor (not ideal), but needed for compatibility reasons with 8.0 and 8.1.
      */
     private function loadOptimizer()
     {
@@ -276,5 +264,24 @@ final class ImageOptimizer extends QueueableJob
     private function getTotalSavedDiskSpace()
     {
         return (int) $this->config->get('image_optimizer.saved_disk_space');
+    }
+
+    /**
+     * Clears cache for flysystem, needed to get updated filesize.
+     *
+     * Only applies to c5 v8.2.x or higher.
+     *
+     * @param \Concrete\Core\Entity\File\File $file
+     */
+    private function clearFlysystemCache($file)
+    {
+        if (!class_exists('Psr6Cache')) {
+            return;
+        }
+
+        $fslId = $file->getFileStorageLocationObject()->getID();
+        $pool = $this->appInstance->make(ExpensiveCache::class)->pool;
+        $cache = new Psr6Cache($pool, 'flysystem-id-' . $fslId);
+        $cache->flush();
     }
 }

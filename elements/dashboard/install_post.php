@@ -18,7 +18,7 @@ use Concrete\Core\Support\Facade\Url;
 
 <p>
     <strong><?php echo t('In order to run it go to:'); ?></strong>
-    <a class="btn btn-default" href="<?php echo Url::to('/dashboard/system/files/image_optimizer') ?>">
+    <a class="btn btn-default" href="<?php echo Url::to('/dashboard/system/optimization/jobs') ?>">
         <?php
         echo t('System & Settings / Optimization / Automated Jobs.');
         ?>
