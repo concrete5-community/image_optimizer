@@ -8,6 +8,7 @@ use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\OptimizerChain;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
+use Concrete\Core\Attribute\Key\FileKey;
 use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
@@ -87,7 +88,16 @@ class Process implements ApplicationAwareInterface
      */
     private function processFile($file)
     {
+        // In theory it's possible that the queued file has been deleted
+        if (!is_object($file)) {
+            return null;
+        }
+
+        // In theory it's possible that this version has been deleted in the meanwhile
         $fileVersion = $file->getVersion();
+        if (!is_object($fileVersion) || $this->isExcluded($fileVersion)) {
+            return null;
+        }
 
         /** @var \A3020\ImageOptimizer\Repository\ProcessedFilesRepository $repo */
         $repo = $this->app->make(ProcessedFilesRepository::class);
@@ -227,5 +237,19 @@ class Process implements ApplicationAwareInterface
         }
 
         return null;
+    }
+
+    /**
+     * Returns true if the file is excluded from image optimization
+     *
+     * @param \Concrete\Core\Entity\File\Version $fileVersion
+     *
+     * @return bool
+     */
+    private function isExcluded($fileVersion)
+    {
+        $exclude = $fileVersion->getAttribute('exclude_from_image_optimizer');
+
+        return $exclude === true;
     }
 }

@@ -56,6 +56,11 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
         $provider = $this->appInstance->make(JobServiceProvider::class);
         $provider->register();
 
+        // If the job quite unexpectedly before, it'll not continue in the 'start' method
+        // Therefore we'll initialize it here, but then without the 2nd parameter (the max number of steps)
+        $this->progressBar = new ProgressBar($this->getOutput());
+        $this->progressBar->display();
+
         parent::__construct();
     }
 
@@ -122,6 +127,7 @@ final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
         }
 
         $this->progressBar->clear();
+
         $numberHelper = $this->appInstance->make('helper/number');
 
         return

@@ -1,3 +1,7 @@
+3.0.2
+- Improve query to get a list of files that need to be optimized. (huge performance win)
+- Fix bug if job stopped unexpectedly and progressbar wasn't set on next run.
+
 3.0.1
 - Fix 'Call to a member function advance() on null' error when running the job manually.
 
