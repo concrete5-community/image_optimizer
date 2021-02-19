@@ -88,6 +88,7 @@ class Process implements ApplicationAwareInterface
         $processedFile->setSkipReason($shouldSkip);
 
         $fileSizeBeforeOptimization = $fileVersion->getFullSize();
+        $processedFile->setFileSizeOriginal($fileSizeBeforeOptimization);
 
         // Only optimize if the file is still on the file system
         if (file_exists($pathToImage) && $shouldSkip === null) {
@@ -130,6 +131,7 @@ class Process implements ApplicationAwareInterface
         if (file_exists($path) && !$shouldSkip) {
             $makeTime = filemtime($path);
             $fileSizeBeforeOptimization = filesize($path);
+            $processedFile->setFileSizeOriginal($fileSizeBeforeOptimization);
 
             if ($this->getMaxSize() && $fileSizeBeforeOptimization >= $this->getMaxSize()) {
                 // Image is too big, let's skip this one

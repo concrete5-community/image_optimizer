@@ -143,10 +143,8 @@ final class ProcessedFilesRepository
 
     public function removeAll()
     {
-        $qb = $this->entityManager->createQueryBuilder();
-        $qb->delete()
-            ->from(ProcessedFile::class, 'pf')
-            ->getQuery()
-            ->execute();
+        $this->entityManager
+            ->getConnection()
+            ->executeQuery("TRUNCATE TABLE ImageOptimizerProcessedFiles");
     }
 }

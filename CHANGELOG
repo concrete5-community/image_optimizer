@@ -1,3 +1,11 @@
+2.4.0
+- Save original file size in database, because it'd be missing for thumbnails otherwise.
+- Improve truncating / resetting all files.
+
+Note: please do the add-on upgrade, otherwise the database columns won't be added.
+Also, you might see some files that are now 0KB (original file size), this is only the case for
+existing files. Please reset all files if you want the statistics to be renewed.
+
 2.3.6
 - Add 'Former' and 'Current' file size to Optimized Images page.
 - Translation fixes.

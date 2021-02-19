@@ -46,6 +46,15 @@ class ProcessedFile
     protected $processedAt;
 
     /**
+     * The file size before optimization
+     *
+     * @ORM\Column(type="integer", nullable=false)
+     */
+    protected $fileSizeOriginal = 0;
+
+    /**
+     * The saved / gained file size after optimization
+     *
      * @ORM\Column(type="integer", nullable=false)
      */
     protected $fileSizeReduction = 0;
@@ -122,6 +131,22 @@ class ProcessedFile
     /**
      * @return int
      */
+    public function getFileSizeOriginal()
+    {
+        return (int) $this->fileSizeOriginal;
+    }
+
+    /**
+     * @return int
+     */
+    public function getFileSizeNew()
+    {
+        return max($this->getFileSizeOriginal() - $this->getFileSizeReduction(), 0);
+    }
+
+    /**
+     * @return int
+     */
     public function getFileSizeReduction()
     {
         return (int) $this->fileSizeReduction;
@@ -133,6 +158,14 @@ class ProcessedFile
     public function setFileSizeReduction($fileSizeReduction)
     {
         $this->fileSizeReduction = max((int) $fileSizeReduction, 0);
+    }
+
+    /**
+     * @param int $fileSizeOriginal
+     */
+    public function setFileSizeOriginal($fileSizeOriginal)
+    {
+        $this->fileSizeOriginal = max((int) $fileSizeOriginal, 0);
     }
 
     /**
