@@ -2,7 +2,7 @@
 
 namespace Concrete\Package\ImageOptimizer;
 
-use A3020\ImageOptimizer\Installer;
+use A3020\ImageOptimizer\Installer\Installer;
 use A3020\ImageOptimizer\Provider\ServiceProvider;
 use Concrete\Core\Package\Package;
 use Concrete\Core\Support\Facade\Package as PackageFacade;
@@ -11,7 +11,7 @@ final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
     protected $appVersionRequired = '8.0';
-    protected $pkgVersion = '2.0.1';
+    protected $pkgVersion = '2.0.2';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];

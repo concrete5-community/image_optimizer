@@ -4,13 +4,13 @@ namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\Entity\ProcessedCacheFilesRepository;
 use A3020\ImageOptimizer\Entity\ProcessedFilesRepository;
+use A3020\ImageOptimizer\MonthlyLimit;
 use A3020\ImageOptimizer\OptimizerChain;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
-use Concrete\Core\Logging\Logger;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Exception;
@@ -30,15 +30,23 @@ class Process implements ApplicationAwareInterface
     /** @var EntityManager */
     private $entityManager;
 
-    public function __construct(Repository $config, EntityManager $entityManager, OptimizerChain $optimizerChain)
+    /** @var MonthlyLimit */
+    private $monthlyLimit;
+
+    public function __construct(Repository $config, EntityManager $entityManager, OptimizerChain $optimizerChain, MonthlyLimit $monthlyLimit)
     {
         $this->config = $config;
         $this->entityManager = $entityManager;
         $this->optimizerChain = $optimizerChain;
+        $this->monthlyLimit = $monthlyLimit;
     }
 
     public function process(ZendQueueMessage $msg)
     {
+        if ($this->monthlyLimit->reached()) {
+            return;
+        }
+
         try {
             $body = json_decode($msg->body, true);
 

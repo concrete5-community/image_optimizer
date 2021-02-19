@@ -1,6 +1,6 @@
 <?php
 
-namespace A3020\ImageOptimizer;
+namespace A3020\ImageOptimizer\Installer;
 
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Entity\Attribute\Key\Settings\BooleanSettings;

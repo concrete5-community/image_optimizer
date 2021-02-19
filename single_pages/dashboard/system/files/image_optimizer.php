@@ -28,7 +28,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
                     /** @var bool $includeFilemanagerImages*/
                     echo $form->checkbox('includeFilemanagerImages', 1, $includeFilemanagerImages);
                     ?>
-                    <?php echo t('Include images from filemanager'); ?>
+                    <?php echo t('Include images from File Manager'); ?>
                 </label>
             </div>
 
@@ -65,10 +65,26 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 echo $form->label('batchSize', t('Batch size for automated job'));
                 /** @var int $batchSize */
                 echo $form->number('batchSize', $batchSize, [
-                    'placeholder' => t('Default: 5'),
+                    'placeholder' => t('Default: %s', 5),
                     'min' => 1,
-                    'style' => 'max-width: 100px',
+                    'style' => 'max-width: 350px',
                 ]);
+                ?>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0">
+                <?php
+                echo $form->label('maxOptimizationsPerMonth', t('Maximum number of optimizations per month'));
+                /** @var int|null $maxOptimizationsPerMonth */
+                echo $form->number('maxOptimizationsPerMonth', $maxOptimizationsPerMonth, [
+                    'placeholder' => t('Leave empty to not set a maximum'),
+                    'min' => 0,
+                    'style'=> 'max-width: 350px',
+                ]);
+
+                if ($numberOfOptimizationsThisMonth) {
+                    echo '<small style="color: #777; font-style: italic; margin-top: 3px;">' . t('Optimizations performed this month: %s.', $numberOfOptimizationsThisMonth) . '</small>';
+                }
                 ?>
             </div>
         </fieldset>
@@ -96,7 +112,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 </label>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 0">
                 <?php
                 /** @var bool $tinyPngApiKey */
                 echo $form->label('tinyPngApiKey', t('TinyPNG API key'));
@@ -139,10 +155,10 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 ?>
 
                 <input type="submit"
-                    title="<?php echo t('Removing the log processed files is without risk.'); ?>"
-                    href="<?php echo $this->action('clear_processed_files') ?>"
-                    class="btn btn-danger"
-                    value="<?php echo t("Clear log of processed files"); ?>" />
+                   title="<?php echo t('Clearing the log of processed files is without risk.'); ?>"
+                   href="<?php echo $this->action('clear_processed_files') ?>"
+                   class="btn btn-danger"
+                   value="<?php echo t("Clear log of processed files"); ?>" />
             </form>
         </div>
         <?php

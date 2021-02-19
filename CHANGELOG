@@ -1,3 +1,9 @@
+2.0.2
+- Add 'Max number of optimizations per month' setting.
+- Improve translations.
+- Fix problem with Installer class.
+- Upgrade to Symfony Process 3..8 (coming from 3.3.8).
+
 2.0.1
 - Catch exceptions while Processing items.
 
@@ -25,42 +31,42 @@
 - Clear Flysystem cache during processing.
 
 1.1
-- Added 'post install' screen with links to settings and Automated Jobs.
+- Add 'post install' screen with links to settings and Automated Jobs.
 - Fix empty checkboxes issue after 'Clear log processed files'.
 
 1.0
 - Approved by PRB
 
 0.9.6
-- Removed check for number of storage locations upon installations.
-- Removed all dependencies except for Symfony Process.
-- Removed PHP 7.x requirement.
-- Added a check for a valid token on settings page.
-- Added a success message on settings page.
-- Added a check for the batch size to make sure it is at least 1.
-- Added a button on the settings page to "Automated Jobs".
-- Added a button to clear the log of processed files.
-- Fixed default settings upon installation.
-- Fixed total bytes of saved disk space bug.
-- Upgraded to Symfony Process 3.3.8 (coming from 3.0).
+- Remove check for number of storage locations upon installations.
+- Remove all dependencies except for Symfony Process.
+- Remove PHP 7.x requirement.
+- Add a check for a valid token on settings page.
+- Add a success message on settings page.
+- Add a check for the batch size to make sure it is at least 1.
+- Add a button on the settings page to "Automated Jobs".
+- Add a button to clear the log of processed files.
+- Fix default settings upon installation.
+- Fix total bytes of saved disk space bug.
+- Upgrade to Symfony Process 3.3.8 (coming from 3.0).
 - Retrieve total saved disk space from config value, because tables can be flushed.
 Note: thanks for @JohnTheFish for extensive review.
 
 0.9.5.1
-- Updated icon.
+- Update icon.
 
 0.9.5
 - Code cleanup as part of PRB review.
 
 0.9.4
-- Removed 'final' from entity classes.
+- Remove 'final' from entity classes.
 
 0.9.3
-- Fixed bug saving file size reduction for filemanager files.
+- Fix bug saving file size reduction for file manager files.
 
 0.9.2
-- Fixed die statement on single page
-- Removed redundant closing label tag
+- Fix die statement on single page
+- Remove redundant closing label tag
 
 0.9.1
 - First submission

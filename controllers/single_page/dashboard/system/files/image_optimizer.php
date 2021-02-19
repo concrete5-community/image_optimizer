@@ -2,6 +2,7 @@
 
 namespace Concrete\Package\ImageOptimizer\Controller\SinglePage\Dashboard\System\Files;
 
+use A3020\ImageOptimizer\Statistics\Month;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Page\Controller\DashboardPageController;
 
@@ -20,9 +21,12 @@ final class ImageOptimizer extends DashboardPageController
         $this->set('includeFilemanagerImages', (bool) $this->config->get('image_optimizer.include_filemanager_images'));
         $this->set('includeCachedImages', (bool) $this->config->get('image_optimizer.include_cached_images'));
         $this->set('batchSize', max((int) $this->config->get('image_optimizer.batch_size'), 1));
+        $this->set('maxOptimizationsPerMonth', $this->config->get('image_optimizer.max_optimizations_per_month'));
 
         $this->set('tinyPngEnabled', (bool) $this->config->get('image_optimizer.tiny_png.enabled'));
         $this->set('tinyPngApiKey', $this->config->get('image_optimizer.tiny_png.api_key'));
+
+        $this->set('numberOfOptimizationsThisMonth', $this->getNumberOfOptimizationsThisMonth());
     }
 
     public function save()
@@ -39,6 +43,13 @@ final class ImageOptimizer extends DashboardPageController
         $config->save('image_optimizer.include_filemanager_images', (bool) $this->post('includeFilemanagerImages'));
         $config->save('image_optimizer.include_cached_images', (bool) $this->post('includeCachedImages'));
         $config->save('image_optimizer.batch_size', (int) $this->post('batchSize'));
+
+        $maxOptimizationsPerMonth = (int) $this->post('maxOptimizationsPerMonth');
+        if (empty($maxOptimizationsPerMonth)) {
+            $maxOptimizationsPerMonth = null;
+        }
+
+        $config->save('image_optimizer.max_optimizations_per_month', $maxOptimizationsPerMonth);
 
         $config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
         $config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));
@@ -71,9 +82,16 @@ final class ImageOptimizer extends DashboardPageController
     {
         $db = $this->app->make('database')->connection();
         return (int) $db->fetchColumn('
-            SELECT 
+            SELECT
               (SELECT COUNT(1) FROM ImageOptimizerProcessedFiles) +
               (SELECT COUNT(1) FROM ImageOptimizerProcessedCacheFiles) 
         ');
+    }
+
+    private function getNumberOfOptimizationsThisMonth()
+    {
+        $statistics = $this->app->make(Month::class);
+
+        return $statistics->total();
     }
 }
