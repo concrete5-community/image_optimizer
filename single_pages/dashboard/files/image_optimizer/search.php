@@ -48,25 +48,37 @@ defined('C5_EXECUTE') or die('Access Denied.');
             <th><?php echo t('Path') ?></th>
             <th>
                 <?php echo t('Is original file') ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle"
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
                    title="<?php echo t('Original files are files that have been uploaded to the File Manager.') ?>">
                 </i>
             </th>
             <th>
-                <?php echo t('Size reduction'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle"
+                <?php echo t('Former size'); ?>
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                   title="<?php echo t('The current file size + the difference after optimzation.') ?>">
+                </i>
+            </th>
+            <th>
+                <?php echo t('Current size'); ?>
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                   title="<?php echo t('The file size after optimization.') ?>">
+                </i>
+            </th>
+            <th>
+                <?php echo t('Difference'); ?>
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
                    title="<?php echo t('The difference in size after the images have been optimized. The higher, the better.') ?>">
                 </i>
             </th>
             <th>
                 <?php echo t('OK'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle"
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
                    title="<?php echo t('Any peculiarities?') ?>">
                 </i>
             </th>
             <th>
                 <?php echo t('Reset'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle"
+                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
                    title="<?php echo t("Image Optimizer marks files it has processed in a log. By clicking the reset button, the log will be cleared for a file. By doing so, Image Optimizer will try to optimize the file again next time. Because files are overwritten, it may be that the image can't be optimized further.") ?>">
                 </i>
             </th>
@@ -106,6 +118,26 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 {
                     data: function(row, type, val) {
                         if (type === 'display') {
+                            return '<div class="text-muted">'+row.size_original + ' <?php echo t('KB'); ?><br>' +
+                                '<small class="text-muted">' + row.size_original_human + '</small></div>';
+                        }
+
+                        return row.size_original;
+                    }
+                },
+                {
+                    data: function(row, type, val) {
+                        if (type === 'display') {
+                            return '<div class="text-muted">'+row.size_optimized + ' <?php echo t('KB'); ?><br>' +
+                                '<small class="text-muted">' + row.size_optimized_human + '</small></div>';
+                        }
+
+                        return row.size_optimized;
+                    }
+                },
+                {
+                    data: function(row, type, val) {
+                        if (type === 'display') {
                             return row.size_reduction + ' <?php echo t('KB'); ?><br>' +
                                 '<small class="text-muted">' + row.size_reduction_human + '</small>';
                         }
@@ -136,14 +168,12 @@ defined('C5_EXECUTE') or die('Access Denied.');
                     }
                 }
             ],
-            order: [[ 2, "desc" ]],
+            order: [[ 4, "desc" ]],
             language: {
                 emptyTable: '<?php echo t('No images have been optimized yet. Please go to Automated Jobs to run the Image Optimizer.') ?>'
             },
             drawCallback: function(settings) {
-                $(".launch-tooltip").tooltip({
-                    placement: 'left'
-                });
+                $(".launch-tooltip").tooltip();
             }
         });
 

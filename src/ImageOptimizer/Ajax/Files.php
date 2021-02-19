@@ -44,7 +44,14 @@ class Files extends AjaxController
 
             $sizeKb = $this->size($processedFile->getFileSizeReduction());
 
+            $sizeOptimized = $file->getVersion()->getFullSize();
+            $sizeOriginal = $sizeOptimized + $processedFile->getFileSizeReduction();
+
             $record['id'] = $processedFile->getId();
+            $record['size_original'] = $this->size($sizeOriginal);
+            $record['size_original_human'] = $sizeKb > 1024 ? $this->numberHelper->formatSize($sizeOriginal) : '';
+            $record['size_optimized'] = $this->size($sizeOptimized);
+            $record['size_optimized_human'] = $sizeKb > 1024 ? $this->numberHelper->formatSize($sizeOptimized) : '';
             $record['size_reduction'] = $this->size($processedFile->getFileSizeReduction());
             $record['size_reduction_human'] = $sizeKb > 1024 ? $this->numberHelper->formatSize($processedFile->getFileSizeReduction()) : '';
             $record['skip_reason'] = $processedFile->getSkipReason();

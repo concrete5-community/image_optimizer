@@ -40,7 +40,7 @@ use Concrete\Core\Support\Facade\Url;
 
             <div class="form-group">
                 <label class="control-label launch-tooltip"
-                   title="<?php echo t("Thumbnail Types ar often used by galleries. The images are scaled versions of the original images. You probably want this setting to be enabled. In case no thumbnails are optimized, make sure you re-run the '%s' Automated Job.", t("Fill thumbnail database table")); ?>"
+                   title="<?php echo t("Thumbnail Types are often used in galleries. The images are scaled versions of the original images. You probably want this setting to be enabled. In case no thumbnails are optimized, make sure you re-run the '%s' Automated Job.", t("Fill thumbnail database table")); ?>"
                 >
                     <?php
                     /** @var bool $includeThumbnailImages */
