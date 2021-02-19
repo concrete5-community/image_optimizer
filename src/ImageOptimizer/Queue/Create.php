@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer\Queue;
 
+use A3020\ImageOptimizer\CacheImageList;
 use A3020\ImageOptimizer\FileList;
 use A3020\ImageOptimizer\Finder\Finder;
 use A3020\ImageOptimizer\MonthlyLimit;
@@ -39,9 +40,9 @@ class Create implements ApplicationAwareInterface
         }
 
         if ($this->config->get('image_optimizer.include_filemanager_images')) {
-            /** @var FileList $fl */
-            $fl = $this->app->make(FileList::class);
-            foreach ($fl->get() as $row) {
+            /** @var FileList $list */
+            $list = $this->app->make(FileList::class);
+            foreach ($list->get() as $row) {
                 $q->send(json_encode([
                     'fID' => $row['fID'],
                 ]));
@@ -49,9 +50,9 @@ class Create implements ApplicationAwareInterface
         }
 
         if ($this->config->get('image_optimizer.include_thumbnail_images', true)) {
-            /** @var ThumbnailFileList $fl */
-            $fl = $this->app->make(ThumbnailFileList::class);
-            foreach ($fl->get() as $row) {
+            /** @var ThumbnailFileList $list */
+            $list = $this->app->make(ThumbnailFileList::class);
+            foreach ($list->get() as $row) {
                 $q->send(json_encode([
                     'path' => $row['path'],
                 ]));
@@ -59,12 +60,11 @@ class Create implements ApplicationAwareInterface
         }
 
         if ($this->config->get('image_optimizer.include_cached_images')) {
-            /** @var Finder $finder */
-            $finder = $this->app->make(Finder::class);
-            foreach ($finder->cacheImages() as $file) {
-                /** @var SplFileInfo $file */
+            /** @var CacheImageList $list */
+            $list = $this->app->make(CacheImageList::class);
+            foreach ($list->get() as $path) {
                 $q->send(json_encode([
-                    'path' => '/cache/'.(string) $file->getRelativePathname(),
+                    'path' => $path,
                 ]));
             }
         }

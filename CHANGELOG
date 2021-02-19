@@ -1,3 +1,6 @@
+2.3.3
+- Improve speed for thumbnails and cache images. This will lead to smaller queues.
+
 2.3.2
 - Show total gained file size on Optimized Images page.
 - Add "Automated Jobs" button to Optimized Images page.

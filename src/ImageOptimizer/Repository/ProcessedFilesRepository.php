@@ -49,8 +49,7 @@ final class ProcessedFilesRepository
     }
 
     /**
-     * @param int $fileId
-     * @param int $versionId
+     * @param string $path
      *
      * @return ProcessedFile
      */
