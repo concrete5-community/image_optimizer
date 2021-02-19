@@ -4,7 +4,6 @@ namespace A3020\ImageOptimizer\Ajax;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
 use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
-use Concrete\Core\File\File;
 use Concrete\Core\Http\ResponseFactory;
 
 class Files extends BaseController
@@ -26,6 +25,16 @@ class Files extends BaseController
      */
     private function getFiles()
     {
+        /** @var \Concrete\Core\Cache\Level\ExpensiveCache $expensiveCache */
+        $expensiveCache = $this->app->make('cache/expensive');
+
+        $cacheList = $expensiveCache->getItem('ImageOptimizer/OptimizedImagesList');
+        if (!$cacheList->isMiss()) {
+            return $cacheList->get();
+        }
+
+        $cacheList->lock();
+
         $records = [];
 
         /** @var ProcessedFilesRepository $repository */
@@ -55,6 +64,8 @@ class Files extends BaseController
 
             $records[] = $record;
         }
+
+        $expensiveCache->save($cacheList->set($records));
 
         return $records;
     }

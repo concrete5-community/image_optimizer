@@ -24,7 +24,13 @@ final class ProcessedFilesRepository
      */
     public function findAll()
     {
-        return $this->repository->findAll();
+        return $this->repository->findBy(
+            [],
+            [
+                'fileSizeReduction' => 'desc',
+            ],
+            2000
+        );
     }
 
     /**
@@ -110,6 +116,7 @@ final class ProcessedFilesRepository
 
     /**
      * @return float
+     *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function totalFileSize()
@@ -161,12 +168,24 @@ final class ProcessedFilesRepository
     {
         $this->entityManager
             ->getConnection()
-            ->executeQuery("TRUNCATE TABLE ImageOptimizerProcessedFiles");
+            ->executeQuery('TRUNCATE TABLE ImageOptimizerProcessedFiles');
     }
 
     public function flush($record)
     {
         $this->entityManager->persist($record);
         $this->entityManager->flush();
+    }
+
+    /**
+     * @return int
+     *
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public function totalFiles()
+    {
+        return (int) $this->entityManager
+            ->getConnection()
+            ->fetchColumn('SELECT COUNT(1) FROM ImageOptimizerProcessedFiles');
     }
 }

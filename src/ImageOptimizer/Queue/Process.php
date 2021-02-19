@@ -59,7 +59,11 @@ class Process implements ApplicationAwareInterface
                 $handler->useLogger($this->logger);
             }
 
-            return $handler->process($body);
+            $file = $handler->process($body);
+
+            $this->clearCache();
+
+            return $file;
         } catch (Exception $e) {
             $this->logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
 
@@ -88,5 +92,20 @@ class Process implements ApplicationAwareInterface
         if (isset($body['path'])) {
             return $this->app->make(\A3020\ImageOptimizer\Handler\CacheFile::class);
         }
+    }
+
+    /**
+     * Clear the list of optimized images.
+     *
+     * This cache is used on the Optimized Images page
+     * quickly return an AJAX response.
+     */
+    private function clearCache()
+    {
+        /** @var \Concrete\Core\Cache\Level\ExpensiveCache $expensiveCache */
+        $expensiveCache = $this->app->make('cache/expensive');
+
+        $cacheList = $expensiveCache->getItem('ImageOptimizer/OptimizedImagesList');
+        $cacheList->clear();
     }
 }

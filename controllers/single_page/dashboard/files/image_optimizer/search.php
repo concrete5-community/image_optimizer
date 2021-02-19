@@ -37,6 +37,7 @@ final class Search extends DashboardPageController
         $repository = $this->app->make(ProcessedFilesRepository::class);
 
         $this->set('numberHelper', $this->app->make('helper/number'));
+        $this->set('totalFiles', $repository->totalFiles());
         $this->set('totalGained', $repository->totalFileSize());
     }
 

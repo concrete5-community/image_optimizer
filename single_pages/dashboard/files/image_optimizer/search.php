@@ -6,6 +6,7 @@ use Concrete\Core\Support\Facade\Url;
 defined('C5_EXECUTE') or die('Access Denied.');
 
 /** @var \Concrete\Core\Utility\Service\Number $numberHelper */
+/** @var int $totalFiles */
 /** @var int $totalGained */
 ?>
 
@@ -37,6 +38,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
         <p class="text-muted" style="margin-bottom: 20px;">
             <?php
             echo t('Total file size gained: %s', $numberHelper->formatSize($totalGained));
+            echo ' (' . t2('%s file', '%s files', $totalFiles) .')';
             ?>
         </p>
         <?php
@@ -45,51 +47,42 @@ defined('C5_EXECUTE') or die('Access Denied.');
 
     <table class="table table-striped table-bordered" id="tbl-files">
         <thead>
-        <tr>
-            <th><?php echo t('Path') ?></th>
-            <th>
-                <?php echo t('Is original file') ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('Original files are files that have been uploaded to the File Manager.') ?>">
-                </i>
-            </th>
-            <th>
-                <?php echo t('Former size'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('The current file size + the difference after optimzation.') ?>">
-                </i>
-            </th>
-            <th>
-                <?php echo t('Current size'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('The file size after optimization.') ?>">
-                </i>
-            </th>
-            <th>
-                <?php echo t('Difference'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('The difference in size after the images have been optimized. The higher, the better.') ?>">
-                </i>
-            </th>
-             <th>
-                <?php echo t('Date'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('The date this image was optimized.') ?>">
-                </i>
-            </th>
-            <th>
-                <?php echo t('OK'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t('Any peculiarities?') ?>">
-                </i>
-            </th>
-            <th>
-                <?php echo t('Reset'); ?>
-                <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
-                   title="<?php echo t("Image Optimizer marks files it has processed in a log. By clicking the reset button, the log will be cleared for a file. By doing so, Image Optimizer will try to optimize the file again next time. Because files are overwritten, it may be that the image can't be optimized further.") ?>">
-                </i>
-            </th>
-        </tr>
+            <tr>
+                <th><?php echo t('Image') ?></th>
+                <th>
+                    <?php echo t('When'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                       title="<?php echo t('When this image was optimized.') ?>">
+                    </i>
+                </th>
+                <th>
+                    <?php echo t('Before'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                       title="<?php echo t('The file size before the last optimization.') ?>">
+                    </i>
+                </th>
+                <th>
+                    <?php echo t('After'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                       title="<?php echo t('The file size after optimization.') ?>">
+                    </i>
+                </th>
+                <th>
+                    <?php echo t('Saved file size'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="bottom"
+                       title="<?php echo t('How much smaller the image has become. The higher, the better.') ?>">
+                    </i>
+                </th>
+                <th>
+                    <?php echo t('OK'); ?>
+                </th>
+                <th>
+                    <?php echo t('Reset'); ?>
+                    <i class="text-muted launch-tooltip fa fa-question-circle" data-placement="right"
+                       title="<?php echo t("Image Optimizer marks files it has processed in a log. By clicking the reset button, the log will be cleared for a file. By doing so, Image Optimizer will try to optimize the file again next time. Because files are overwritten, it may be that the image can't be optimized further.") ?>">
+                    </i>
+                </th>
+            </tr>
         </thead>
     </table>
 </div>
@@ -103,11 +96,12 @@ defined('C5_EXECUTE') or die('Access Denied.');
             lengthMenu: [[15, 40, 80, -1], [15, 40, 80, '<?php echo t('All') ?>']],
             columns: [
                 {
+                    width: '120px',
                     data: function(row, type, val) {
                         if (type === 'display') {
                             var html = '';
                             html += '<div class="thumb" style="background-image: url(\''+row.path+'\')">';
-                            html += '<a target="_blank" href="' + row.path + '"></a>';
+                            html += '<a class="launch-tooltip" title="<?php echo t('Click to open in new tab'); ?>" target="_blank" href="' + row.path + '"></a>';
                             html += '</div>';
                             html += '<div class="path"><a target="_blank" href="' + row.path + '">' + row.path + '</a></div>';
 
@@ -118,25 +112,32 @@ defined('C5_EXECUTE') or die('Access Denied.');
                     }
                 },
                 {
+                    width: '100px',
                     data: function(row, type, val) {
-                        return row.is_original ? '<?php echo t('Yes'); ?>' : '<?php echo t('No'); ?>';
+                        if (type === 'display') {
+                            return '<div class="text-muted">' + row.date + '</div>';
+                        }
+
+                        return row.date;
                     }
                 },
                 {
+                    width: '100px',
                     data: function(row, type, val) {
                         if (type === 'display') {
-                            return '<div class="text-muted">'+row.size_original + ' <?php echo t('KB'); ?><br>' +
-                                '<small class="text-muted">' + row.size_original_human + '</small></div>';
+                            return '<div class="text-muted">'+row.size_original + ' <?php echo t('KB'); ?><br>'
+                                + '<small class="text-muted">' + row.size_original_human + '</small></div>';
                         }
 
                         return row.size_original;
                     }
                 },
                 {
+                    width: '100px',
                     data: function(row, type, val) {
                         if (type === 'display') {
-                            return '<div class="text-muted">'+row.size_optimized + ' <?php echo t('KB'); ?><br>' +
-                                '<small class="text-muted">' + row.size_optimized_human + '</small></div>';
+                            return '<div class="text-muted">'+row.size_optimized + ' <?php echo t('KB'); ?><br>'
+                                + '<small class="text-muted">' + row.size_optimized_human + '</small></div>';
                         }
 
                         return row.size_optimized;
@@ -145,19 +146,15 @@ defined('C5_EXECUTE') or die('Access Denied.');
                 {
                     data: function(row, type, val) {
                         if (type === 'display') {
-                            return row.size_reduction + ' <?php echo t('KB'); ?><br>' +
-                                '<small class="text-muted">' + row.size_reduction_human + '</small>';
+                            return '<div class="reduction">' + row.size_reduction + ' <?php echo t('KB'); ?><br>'
+                                + '<small class="text-muted">' + row.size_reduction_human + '</small></div>';
                         }
 
                         return row.size_reduction;
                     }
                 },
-                 {
-                    data: function(row, type, val) {
-                        return row.date;
-                    }
-                },
                 {
+                    width: '100px',
                     data: function(row, type, val) {
                         if (row.skip_reason) {
                             var reason = '';
@@ -176,31 +173,32 @@ defined('C5_EXECUTE') or die('Access Denied.');
                                     break;
                             }
 
-                            return '<i class="fa fa-info-circle launch-tooltip text-muted" title="' + reason + '"></i>';
+                            return '<i class="fa fa-info-circle launch-tooltip" title="' + reason + '"></i>';
                         }
 
                         if (row.size_reduction === 0) {
-                            return '<i class="fa fa-info-circle launch-tooltip text-muted" ' +
+                            return '<i class="fa fa-info-circle launch-tooltip" ' +
                                 'title="<?php echo t("0KB was optimized. This can happen if you ran the optimizers multiple times, if no optimizers have been configured, or because the image was already optimized."); ?>"></i>';
                         }
 
-                        return '<i class="fa fa-check text-muted"></i>';
+                        return '<i class="fa fa-check launch-tooltip" title="<?php echo t('All good'); ?>"></i>';
                     }
                 },
                 {
+                    width: '100px',
                     data: function(row, type, val) {
-                        return '<a data-id="'+row.id+'" data-is-original="'+ (row.is_original ? 1 : 0)+'" href="#" class="reset-one">' +
-                            '<i class="fa fa-close"></i>' +
+                        return '<a title="<?php echo t('Optimize again next time'); ?>" data-id="'+row.id+'" data-is-original="'+ (row.is_original ? 1 : 0)+'" href="#" class="reset-one launch-tooltip">' +
+                            '<i class="fa fa-refresh"></i>' +
                             '</a>';
                     }
                 }
             ],
-            order: [[ 5, "desc" ]],
+            order: [[ 1, 'desc' ]],
             language: {
                 emptyTable: '<?php echo t('No images have been optimized yet. Please go to Automated Jobs to run the Image Optimizer.') ?>'
             },
             drawCallback: function(settings) {
-                $(".launch-tooltip").tooltip();
+                $('.launch-tooltip').tooltip();
             }
         });
 

@@ -1,3 +1,9 @@
+3.2.4
+- Cache results of Optimized Images page in order to load the page faster.
+- UI improvements; make optimized column more salient. Improve icons and tooltips.
+- Limit number of files in datatable to 2000.
+- Show number of files that are optimized on top of the page.
+
 3.2.3
 - Correctly remove cache files from optimized files table, in case the cache is flushed.
 
