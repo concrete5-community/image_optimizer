@@ -5,7 +5,7 @@ namespace A3020\ImageOptimizer\Provider;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class ServiceProvider implements ApplicationAwareInterface
 {
@@ -13,7 +13,7 @@ class ServiceProvider implements ApplicationAwareInterface
 
     private $dispatcher;
 
-    public function __construct(EventDispatcherInterface $dispatcher)
+    public function __construct(EventDispatcher $dispatcher)
     {
         $this->dispatcher = $dispatcher;
     }

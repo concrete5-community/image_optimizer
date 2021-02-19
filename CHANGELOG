@@ -1,3 +1,6 @@
+2.0.3
+- Fix EventDispatcher issue on version 8.0. (the interface is not instantiable)
+
 2.0.2
 - Add 'Max number of optimizations per month' setting.
 - Improve translations.
