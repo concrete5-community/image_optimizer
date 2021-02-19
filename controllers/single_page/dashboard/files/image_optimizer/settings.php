@@ -61,7 +61,6 @@ final class Settings extends DashboardPageController
         }
 
         $config->save('image_optimizer.max_image_size', $maxImageSize);
-
         $config->save('image_optimizer.tiny_png.enabled', (bool) $this->post('tinyPngEnabled'));
         $config->save('image_optimizer.tiny_png.api_key', $this->post('tinyPngApiKey'));
 

@@ -2,6 +2,7 @@
 
 namespace Concrete\Package\ImageOptimizer\Controller\SinglePage\Dashboard\Files\ImageOptimizer;
 
+use A3020\ImageOptimizer\Repository\ProcessedFilesRepository;
 use A3020\ImageOptimizer\Resetter;
 use Concrete\Core\Asset\AssetList;
 use Concrete\Core\Config\Repository\Repository;
@@ -29,6 +30,12 @@ final class Search extends DashboardPageController
     public function view()
     {
         /** @see \A3020\ImageOptimizer\Ajax\Files */
+
+        /** @var ProcessedFilesRepository $repository */
+        $repository = $this->app->make(ProcessedFilesRepository::class);
+
+        $this->set('numberHelper', $this->app->make('helper/number'));
+        $this->set('totalGained', $repository->totalFileSize());
     }
 
     public function resetAll()

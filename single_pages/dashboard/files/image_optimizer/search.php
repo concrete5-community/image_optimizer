@@ -4,6 +4,8 @@ use Concrete\Core\Support\Facade\Url;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
+/** @var \Concrete\Core\Utility\Service\Number $numberHelper */
+/** @var int $totalGained */
 ?>
 
 <div class="ccm-dashboard-header-buttons btn-group">
@@ -13,15 +15,31 @@ defined('C5_EXECUTE') or die('Access Denied.');
         echo $token->output('a3020.image_optimizer.reset_all');
         ?>
         <input type="submit"
-               class="btn btn-danger"
-               title="<?php echo t(''); ?>"
-               value="<?php echo t("Reset all files")?>" />
+           class="btn btn-danger"
+           title="<?php echo t(''); ?>"
+           value="<?php echo t("Reset all files")?>" />
+        <a
+            title="<?php echo t('The Image Optimizer runs as an automated job'); ?>"
+            href="<?php echo Url::to('/dashboard/system/optimization/jobs'); ?>" class="btn btn-default"><?php echo t("Go to Automated Jobs")?>
+        </a>
     </form>
 </div>
 
 <div class="ccm-dashboard-content-inner">
     <?php
     $this->element('/dashboard/review_notification', [], 'image_optimizer');
+    ?>
+
+    <?php
+    if ($totalGained) {
+        ?>
+        <p class="text-muted" style="margin-bottom: 20px;">
+            <?php
+            echo t('Total file size gained: %s', $numberHelper->formatSize($totalGained));
+            ?>
+        </p>
+        <?php
+    }
     ?>
 
     <table class="table table-striped table-bordered" id="tbl-files">
