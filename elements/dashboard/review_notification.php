@@ -2,14 +2,15 @@
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
+use A3020\ImageOptimizer\Foundation\Review;
 use Concrete\Core\Support\Facade\Application;
 
 $pkgName = t('Image Optimizer');
-$pkgHandle = 'image_optimizer';
+$pkgHandle = 'image-optimizer';
 
 $app = Application::getFacadeApplication();
 
-if (!$app->make(\A3020\ImageOptimizer\Foundation\Review::class)->shouldShowNotification()) {
+if (!$app->make(Review::class)->shouldShowNotification()) {
     return;
 }
 ?>
@@ -18,7 +19,7 @@ if (!$app->make(\A3020\ImageOptimizer\Foundation\Review::class)->shouldShowNotif
     <button type="button" class="close" data-dismiss="alert">×</button>
     <p>
         <?php
-        echo t("Do you like the %s add-on and would you like to post a review? I will grant you a <strong>free license</strong> as a thank-you!",
+        echo t('Do you like the %s add-on and would you like to post a review? I will grant you a <strong>free license</strong> as a thank-you!',
             $pkgName
         );
         ?>

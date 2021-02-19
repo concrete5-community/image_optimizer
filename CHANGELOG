@@ -1,3 +1,6 @@
+3.2.8
+- Fix link to marketplace page to leave a review.
+
 3.2.7
 - Fix BC break of a core Logger class.
 
