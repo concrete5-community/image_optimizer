@@ -1,3 +1,6 @@
+1.4.2
+- Update icon.
+
 1.4.1
 - Use truncate to prevent high auto increment number when cache is clear often.
 - Keep thumbnail records if 'thumbnails' are not removed during cache clear.
