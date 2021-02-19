@@ -2,7 +2,6 @@
 
 namespace A3020\ImageOptimizer\Provider;
 
-use A3020\ImageOptimizer\Console\Command\OptimizeImagesCommand;
 use A3020\ImageOptimizer\Listener\ThumbnailDelete\RemoveProcessedFile;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
@@ -34,7 +33,7 @@ class ServiceProvider implements ApplicationAwareInterface
             if (!$config->has('concrete.cache.clear.thumbnails') || $config->get('concrete.cache.clear.thumbnails')) {
                 // Remove all records if the thumbnail setting doesn't exist or if we decide to also clear thumbs
                 $db->executeQuery("
-                    DELETE FROM ImageOptimizerProcessedFiles WHERE path LIKE '/cache%'
+                    DELETE TABLE ImageOptimizerProcessedFiles WHERE path LIKE '/cache%'
                 ");
             }
         });
@@ -59,10 +58,5 @@ class ServiceProvider implements ApplicationAwareInterface
                 '\A3020\ImageOptimizer\Ajax\Foundation\DismissReview::view',
             ],
         ]);
-
-        if ($this->app->isRunThroughCommandLineInterface()) {
-            $console = $this->app->make('console');
-            $console->add(new OptimizeImagesCommand());
-        }
     }
 }

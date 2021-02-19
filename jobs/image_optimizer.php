@@ -7,17 +7,34 @@ use A3020\ImageOptimizer\Queue\Create;
 use A3020\ImageOptimizer\Queue\Finish;
 use A3020\ImageOptimizer\Queue\Process;
 use Concrete\Core\Config\Repository\Repository;
+use Concrete\Core\Console\ConsoleAwareInterface;
+use Concrete\Core\Console\ConsoleAwareTrait;
 use Concrete\Core\Job\QueueableJob;
 use Concrete\Core\Support\Facade\Application;
+use Symfony\Component\Console\Helper\ProgressBar;
 
-final class ImageOptimizer extends QueueableJob
+final class ImageOptimizer extends QueueableJob implements ConsoleAwareInterface
 {
-    protected $jQueueBatchSize = 5;
+    // This trait is available from version 8.3.0
+    use ConsoleAwareTrait;
 
-    /** @var \Concrete\Core\Application\Application
-     * Not named 'app' on purpose because parent class might change
+    /**
+     * * Not named 'app' because the parent class might change
+     *
+     * @var \Concrete\Core\Application\Application
      */
     private $appInstance;
+
+    /** @var ProgressBar */
+    protected $progressBar;
+
+    protected $jQueueBatchSize = 5;
+
+    protected $totalBytesSaved = 0;
+
+    protected $totalImagesOptimized = 0;
+
+    public $jSupportsQueue = true;
 
     public function getJobName()
     {
@@ -49,9 +66,14 @@ final class ImageOptimizer extends QueueableJob
      */
     public function start(\ZendQueue\Queue $q)
     {
-        /** @var Create $queue */
-        $queue = $this->appInstance->make(Create::class);
-        $queue->create($q);
+        $output = $this->getOutput();
+
+        /** @var Create $createQueue */
+        $createQueue = $this->appInstance->make(Create::class);
+        $queue = $createQueue->create($q);
+
+        $this->progressBar = new ProgressBar($output, $queue->count());
+        $this->progressBar->display();
     }
 
     /**
@@ -61,9 +83,22 @@ final class ImageOptimizer extends QueueableJob
      */
     public function processQueueItem(\ZendQueue\Message $msg)
     {
-        /** @var Process $queue */
-        $queue = $this->appInstance->make(Process::class);
-        $queue->process($msg);
+        /** @var Process $processQueue */
+        $processQueue = $this->appInstance->make(Process::class);
+        $processedFile = $processQueue->process($msg);
+        if (!$processedFile) {
+            return;
+        }
+
+        $this->progressBar->advance();
+        $this->getOutput()
+            ->writeln(' ' .
+                $processedFile->getComputedPath() . ' '.
+                $processedFile->getFileSizeReduction() .' bytes'
+            );
+
+        $this->totalBytesSaved += $processedFile->getFileSizeReduction();
+        $this->totalImagesOptimized++;
     }
 
     /**
@@ -78,6 +113,20 @@ final class ImageOptimizer extends QueueableJob
         /** @var Finish $queue */
         $queue = $this->appInstance->make(Finish::class);
 
-        return $queue->finish($q);
+        if (!$this->hasConsole()) {
+            return $queue->finish($q);
+        }
+
+        $this->progressBar->clear();
+        $numberHelper = $this->appInstance->make('helper/number');
+
+        return
+            sprintf('The job ran successfully. Number of optimized images: %s.',
+                $this->totalImagesOptimized
+            ) . ' '.
+            sprintf('Total size gained: %s (%s).',
+                $this->totalBytesSaved,
+                $numberHelper->formatSize($this->totalBytesSaved)
+            );
     }
 }

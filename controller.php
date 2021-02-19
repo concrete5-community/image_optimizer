@@ -10,8 +10,8 @@ use Concrete\Core\Support\Facade\Package as PackageFacade;
 final class Controller extends Package
 {
     protected $pkgHandle = 'image_optimizer';
-    protected $appVersionRequired = '8.0';
-    protected $pkgVersion = '2.5.1';
+    protected $appVersionRequired = '8.3.1';
+    protected $pkgVersion = '3.0.0';
     protected $pkgAutoloaderRegistries = [
         'src/ImageOptimizer' => '\A3020\ImageOptimizer',
     ];
