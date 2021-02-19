@@ -1,3 +1,7 @@
+3.2.9
+- Fix 'useLogger() on null' error, caused by unprocessed
+queue messages from an earlier version of the add-on.
+
 3.2.8
 - Fix link to marketplace page to leave a review.
 

@@ -3,6 +3,7 @@
 namespace A3020\ImageOptimizer\Queue;
 
 use A3020\ImageOptimizer\Entity\ProcessedFile;
+use A3020\ImageOptimizer\Exception\HandlerNotFound;
 use A3020\ImageOptimizer\Handler\HandlerInterface;
 use A3020\ImageOptimizer\MonthlyLimit;
 use Concrete\Core\Application\ApplicationAwareInterface;
@@ -63,17 +64,24 @@ class Process implements ApplicationAwareInterface
             $this->clearCache();
 
             return $file;
+        } catch (HandlerNotFound $e) {
+            // Silently fail. This is most likely because earlier version of IO used 'fID'
+            // in the queue table. Newer versions use 'fileId'. By returning null,
+            // this queue message will just disappear, and next time an image is processed,
+            // it'll use the correct file id reference.
         } catch (Exception $e) {
             $this->logger->debug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
-
-            return null;
         }
+
+        return null;
     }
 
     /**
      * @param array $body
      *
      * @return HandlerInterface
+     *
+     * @throws HandlerNotFound
      */
     private function makeHandler($body)
     {
@@ -91,6 +99,8 @@ class Process implements ApplicationAwareInterface
         if (isset($body['path'])) {
             return $this->app->make(\A3020\ImageOptimizer\Handler\CacheFile::class);
         }
+
+        throw new HandlerNotFound();
     }
 
     /**
