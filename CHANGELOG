@@ -1,3 +1,6 @@
+2.0.1
+- Catch exceptions while Processing items.
+
 2.0
 - Add TinyPNG support.
 - Refactor code base.

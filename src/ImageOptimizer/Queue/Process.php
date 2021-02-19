@@ -10,8 +10,10 @@ use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Cache\Level\ExpensiveCache;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\File\File;
+use Concrete\Core\Logging\Logger;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
+use Exception;
 use League\Flysystem\Cached\Storage\Psr6Cache;
 use ZendQueue\Message as ZendQueueMessage;
 
@@ -37,19 +39,24 @@ class Process implements ApplicationAwareInterface
 
     public function process(ZendQueueMessage $msg)
     {
-        $body = json_decode($msg->body, true);
+        try {
+            $body = json_decode($msg->body, true);
 
-        if (isset($body['fID'])) {
-            $this->processFile(File::getByID($body['fID']));
-        }
+            if (isset($body['fID'])) {
+                $this->processFile(File::getByID($body['fID']));
+            }
 
-        if (isset($body['path'])) {
-            $this->processCachedFile($body['path']);
+            if (isset($body['path'])) {
+                $this->processCachedFile($body['path']);
+            }
+        } catch (Exception $e) {
+            $logger = $this->app->make('log/exceptions');
+            $logger->addDebug($e->getMessage() . $e->getFile() . $e->getLine() . $e->getTraceAsString());
         }
     }
 
     /**
-     * Optimizes files from Filemanager.
+     * Optimizes files from File Manager.
      *
      * @param \Concrete\Core\Entity\File\File $file
      */
