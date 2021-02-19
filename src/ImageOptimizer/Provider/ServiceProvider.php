@@ -33,7 +33,7 @@ class ServiceProvider implements ApplicationAwareInterface
             if (!$config->has('concrete.cache.clear.thumbnails') || $config->get('concrete.cache.clear.thumbnails')) {
                 // Remove all records if the thumbnail setting doesn't exist or if we decide to also clear thumbs
                 $db->executeQuery("
-                    DELETE TABLE ImageOptimizerProcessedFiles WHERE path LIKE '/cache%'
+                    DELETE FROM ImageOptimizerProcessedFiles WHERE path LIKE '/cache%'
                 ");
             }
         });
