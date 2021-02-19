@@ -1,3 +1,8 @@
+2.3.4
+- Hook into thumbnail delete event. This will make sure that if thumbnails are deleted
+the associated statistics are also removed. This e.g. applies to a thumbnail 'Rescan'.
+The on_thumbnail_delete event will be available in the next 8.4.0 release.
+
 2.3.3
 - Improve speed for thumbnails and cache images. This will lead to smaller queues.
 

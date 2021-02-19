@@ -2,6 +2,7 @@
 
 namespace A3020\ImageOptimizer\Provider;
 
+use A3020\ImageOptimizer\Listener\ThumbnailDelete\RemoveProcessedFile;
 use Concrete\Core\Application\ApplicationAwareInterface;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Config\Repository\Repository;
@@ -37,12 +38,10 @@ class ServiceProvider implements ApplicationAwareInterface
             }
         });
 
-        $this->dispatcher->addListener('on_thumbnail_generate', function($event) {
-            \Log::addDebug("Generate: ".$event->getPath());
-        });
-
         $this->dispatcher->addListener('on_thumbnail_delete', function($event) {
-            \Log::addDebug("Delete: ".$event->getPath());
+            /** @var RemoveProcessedFile $listener */
+            $listener = $this->app->make(RemoveProcessedFile::class);
+            $listener->handle($event);
         });
 
         /** @var RouterInterface $router */

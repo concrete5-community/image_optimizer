@@ -125,6 +125,22 @@ final class ProcessedFilesRepository
         return false;
     }
 
+    public function removeByPath($path)
+    {
+        /** @var ProcessedFile $record */
+        $record = $this->repository->findOneBy([
+            'path' => $path,
+        ]);
+        if ($record) {
+            $this->entityManager->remove($record);
+            $this->entityManager->flush();
+
+            return true;
+        }
+
+        return false;
+    }
+
     public function removeAll()
     {
         $qb = $this->entityManager->createQueryBuilder();
