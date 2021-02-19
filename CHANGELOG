@@ -1,3 +1,7 @@
+2.0.9
+- Add an extra warning to inform site owners that they need to install
+or configure optimizers before running the job.
+
 2.0.8
 - Add link to FAQ when optimizer doesn't gain file size.
 
